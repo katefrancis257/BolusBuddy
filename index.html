@@ -206,11 +206,16 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
 
   <main>
     <section id="view-foods" role="tabpanel" aria-labelledby="tab-foods">
-      <div class="search"><input id="q" type="search" placeholder="Search foods, for example bagel" autocomplete="off" aria-label="Search foods"></div>
+      <div class="search"><input id="q" type="search" placeholder="Search foods or brands, for example Hovis" autocomplete="off" aria-label="Search foods"></div>
       <div id="cats" class="chips" aria-label="Food groups"></div>
       <ul id="foodList" class="list"></ul>
       <p id="moreHint" class="note" hidden></p>
-      <div id="noResults" class="empty" hidden><strong>No foods match</strong>Try another word, or add it from the packet label.</div>
+      <div id="noResults" class="empty" hidden><strong>Nothing in the food list matches</strong>Try another word, search branded products, or scan the barcode.</div>
+      <div id="brandBox" hidden>
+        <button id="brandBtn" class="outline wide" type="button">Search branded products</button>
+        <p id="brandStatus" class="meta" aria-live="polite"></p>
+        <ul id="brandList" class="list"></ul>
+      </div>
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
       <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021, Public Health England, Open Government Licence v3.0), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
     </section>
@@ -743,6 +748,83 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   });
   $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); renderFavs(); });
   $("unitsForm").addEventListener("submit", function (e) { e.preventDefault(); $("unitsDlg").close(); });
+
+  // ---------- Branded products (Open Food Facts) ----------
+  var brandCache = {}, brandShown = [], brandCtl = null;
+  function offFood(p) {
+    var c100 = p && p.nutriments ? Number(p.nutriments.carbohydrates_100g) : NaN;
+    if (!p || !p.product_name || !isFinite(c100)) return null;
+    var brand = p.brands ? String(p.brands).split(",")[0].trim() : "";
+    return {
+      code: String(p.code || ""), name: [brand, p.product_name].filter(Boolean).join(" ").slice(0, 60), carbs: round1(c100),
+      servingName: p.serving_size ? String(p.serving_size).slice(0, 30) : "",
+      servingG: Number(p.serving_quantity) > 0 ? round1(Number(p.serving_quantity)) : ""
+    };
+  }
+  function offPrefill(f) {
+    return {
+      barcode: f.code, name: f.name, carbs: f.carbs, portionName: f.servingName, portionG: f.servingG,
+      source: "Found on Open Food Facts" + (f.code ? " (barcode " + f.code + ")" : "") + ". These figures are added by the public, so check them against the packet before you save."
+    };
+  }
+  function renderBrandBox() {
+    var q = $("q").value.trim();
+    $("brandBox").hidden = q.length < 3;
+    $("brandBtn").textContent = 'Search branded products for "' + q + '"';
+    if (brandCache[q.toLowerCase()]) showBrands(brandCache[q.toLowerCase()], q);
+    else { $("brandList").innerHTML = ""; $("brandStatus").textContent = ""; brandShown = []; }
+  }
+  function showBrands(list, q) {
+    brandShown = list;
+    $("brandStatus").textContent = list.length
+      ? list.length + " branded products from Open Food Facts. Tap one to check and save it."
+      : 'No branded products found for "' + q + '". Try the brand name plus the product, or scan the barcode.';
+    $("brandList").innerHTML = list.map(function (f, i) {
+      return '<li><button type="button" class="food" data-brand="' + i + '"><span class="txt"><span class="name">' + esc(f.name) +
+        '</span><span class="sub">' + (f.servingName ? esc(f.servingName) + " · " : "") + "Open Food Facts</span></span>" +
+        '<span class="per100"><b>' + fmt(f.carbs) + " g</b>per 100 g</span></button></li>";
+    }).join("");
+  }
+  function searchBrands() {
+    var q = $("q").value.trim();
+    if (q.length < 3) return;
+    if (brandCtl) brandCtl.abort();
+    var ctl = brandCtl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 15000);
+    $("brandBtn").disabled = true;
+    $("brandStatus").textContent = "Searching Open Food Facts…";
+    $("brandList").innerHTML = "";
+    var url = "https://world.openfoodfacts.org/cgi/search.pl?action=process&json=1&search_simple=1&page_size=40" +
+      "&tagtype_0=countries&tag_contains_0=contains&tag_0=united-kingdom" +
+      "&fields=code,product_name,brands,nutriments,serving_size,serving_quantity&search_terms=" + encodeURIComponent(q);
+    fetch(url, { signal: ctl.signal })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (d) {
+        var seen = {}, list = [];
+        (d.products || []).forEach(function (p) {
+          var f = offFood(p);
+          if (f && !seen[f.name.toLowerCase()]) { seen[f.name.toLowerCase()] = true; list.push(f); }
+        });
+        list = list.slice(0, 25);
+        brandCache[q.toLowerCase()] = list;
+        if ($("q").value.trim() === q) showBrands(list, q);
+      })
+      .catch(function (e) {
+        if (ctl.signal.aborted && brandCtl !== ctl) return;
+        $("brandStatus").textContent = location.hostname.indexOf("github.io") >= 0 || location.protocol === "http:"
+          ? "Open Food Facts didn't answer. Wait a minute and try again, or scan the barcode."
+          : "Branded search can't reach Open Food Facts from here. It works in the app at katefrancis257.github.io/BolusBuddy. Here, scan or photograph the label instead.";
+      })
+      .then(function () { clearTimeout(t); $("brandBtn").disabled = false; });
+  }
+  $("brandBtn").addEventListener("click", searchBrands);
+  $("q").addEventListener("input", renderBrandBox);
+  $("q").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); searchBrands(); } });
+  $("brandList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-brand]"); if (!b) return;
+    var f = brandShown[Number(b.dataset.brand)]; if (!f) return;
+    var mine = f.code && state.custom.filter(function (c) { return c.barcode === f.code; })[0];
+    if (mine) openPortion(mine); else openCustom(offPrefill(f));
+  });
 
   // ---------- Scanning ----------
   var ZXING_URL = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
