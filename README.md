@@ -11,6 +11,7 @@ BolusBuddy counts carbohydrate only. It does not work out insulin doses.
 - A running meal total in grams, shown as 10 g carb portions (CP) or 15 g exchanges if you prefer.
 - Your own foods, added from a packet label and saved on your phone.
 - Quick entry of a carb figure from a label or menu.
+- Favourite meals: save a meal with its total carbs and add it back in one tap.
 - Works offline and can be added to the home screen.
 
 Carb figures come from CoFID 2021 and are converted to match UK packet labels. CoFID states carbohydrate as monosaccharide equivalents, so starch is divided by 1.10 and disaccharides by 1.05. Brands and recipes vary, so the packet label is always the better source. See [docs/cofid-check.md](docs/cofid-check.md) for how each common food compares.

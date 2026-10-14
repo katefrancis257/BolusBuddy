@@ -50,6 +50,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+button:disabled { opacity: 0.45; cursor: default; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 16px; line-height: 1.45;
@@ -71,8 +72,8 @@ button { cursor: pointer; }
 .brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.875rem; }
 .ghost { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 0.875rem; }
 
-.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
-.tabs button { border: 0; background: none; border-radius: 9px; padding: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+.tabs button { border: 0; background: none; border-radius: 9px; padding: 10px 6px; min-width: 0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
 .count { font-family: var(--font-data); font-size: 0.8rem; min-width: 1.6em; padding: 0 6px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
 .tabs button[aria-selected="true"] .count { background: var(--accent-ink); color: var(--accent); }
@@ -111,6 +112,15 @@ section { display: flex; flex-direction: column; gap: 12px; }
 .row-actions > * { flex: 1 1 160px; }
 .danger-ghost { border: 1px solid var(--line); background: none; color: var(--danger); border-radius: 12px; padding: 11px 14px; font-weight: 600; }
 .note { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.fav-total { font-family: var(--font-display); font-size: 1.5rem; line-height: 1; text-align: right; flex: none; font-variant-numeric: tabular-nums; }
+.fav-total small { display: block; font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+.fav-items { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; }
+.fav-items li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; }
+.fav-items li + li { border-top: 1px solid var(--line); }
+.fav-items .carbs { font-family: var(--font-data); font-weight: 600; flex: none; }
+.fav-items .sub { display: block; color: var(--muted); font-size: 0.85rem; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(110px + env(safe-area-inset-bottom, 0px)); z-index: 6;
+  width: max-content; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 10px 18px; font-weight: 600; font-size: 0.9rem; max-width: calc(100% - 32px); text-align: center; }
 .banner { background: var(--accent-soft); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
 .banner button { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 6px 12px; font-weight: 600; }
 .empty { text-align: center; padding: 28px 16px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; }
@@ -182,6 +192,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   <nav class="tabs" role="tablist" aria-label="Views">
     <button id="tab-foods" role="tab" aria-selected="true" aria-controls="view-foods" type="button">Foods</button>
     <button id="tab-meal" role="tab" aria-selected="false" aria-controls="view-meal" type="button">My meal <span id="mealCount" class="count">0</span></button>
+    <button id="tab-favs" role="tab" aria-selected="false" aria-controls="view-favs" type="button">Favourites <span id="favCount" class="count">0</span></button>
   </nav>
 
   <main>
@@ -201,9 +212,16 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <div id="mealEmpty" class="empty" hidden><strong>Your meal is empty</strong>Pick foods from the Foods tab and they will add up here.</div>
       <div class="row-actions">
         <button id="quickAddBtn" class="outline" type="button">Add carbs from a label</button>
+        <button id="saveFavBtn" class="outline" type="button">Save as favourite</button>
         <button id="clearMeal" class="danger-ghost" type="button">Clear meal</button>
       </div>
       <p class="note">BolusBuddy counts carbohydrate only. It does not work out insulin doses. Use your own ratio and the advice of your diabetes team.</p>
+    </section>
+
+    <section id="view-favs" role="tabpanel" aria-labelledby="tab-favs" hidden>
+      <ul id="favList" class="list"></ul>
+      <div id="favEmpty" class="empty" hidden><strong>No favourite meals yet</strong>Build a meal you eat often, then tap Save as favourite on the My meal tab.</div>
+      <p class="note">Favourites keep the carb figures from when you saved them. Saving a meal with the same name replaces the earlier one.</p>
     </section>
   </main>
 </div>
@@ -283,6 +301,34 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   </form>
 </dialog>
 
+<dialog id="saveFavDlg" aria-labelledby="sfTitle">
+  <form class="sheet" id="saveFavForm" method="dialog">
+    <h2 id="sfTitle">Save as favourite</h2>
+    <p class="meta" id="sfMeta"></p>
+    <div class="field"><label for="sfName">Name this meal</label><input id="sfName" required maxlength="40" placeholder="For example, weekday breakfast"></div>
+    <p class="err" id="sfErr" hidden></p>
+    <div class="actions">
+      <button type="button" id="sfCancel">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="favDlg" aria-labelledby="fTitle">
+  <form class="sheet" id="favForm" method="dialog">
+    <h2 id="fTitle">Favourite</h2>
+    <ul class="fav-items" id="fItems"></ul>
+    <div class="result"><span>Total carbohydrate</span><b id="fTotal">0 g</b></div>
+    <button type="button" id="fDelete" class="del-custom">Delete this favourite</button>
+    <div class="actions">
+      <button type="button" id="fClose">Close</button>
+      <button type="submit" class="primary">Add to my meal</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
 <dialog id="unitsDlg" aria-labelledby="uTitle">
   <form class="sheet" id="unitsForm" method="dialog">
     <h2 id="uTitle">Show the total as</h2>
@@ -313,7 +359,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   });
   var byId = {};
   foods.concat(cofid).forEach(function (f) { byId[f.id] = f; });
-  var state = { meal: [], custom: [], units: "cp", example: false };
+  var state = { meal: [], custom: [], favourites: [], units: "cp", example: false };
 
   function load() {
     try {
@@ -406,7 +452,45 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     $("mealEmpty").hidden = state.meal.length > 0;
     $("exampleBanner").hidden = !state.example;
     $("mealCount").textContent = state.meal.length;
+    $("saveFavBtn").disabled = state.meal.length === 0;
     renderTotal();
+  }
+
+  // ---------- Favourites ----------
+  function mealTotal(items) { return items.reduce(function (s, i) { return s + i.carbs; }, 0); }
+  function altUnits(t) {
+    if (state.units === "cp") return fmt(t / 10) + " CP";
+    if (state.units === "ex") return fmt(t / 15) + " exch.";
+    return "";
+  }
+  function renderFavs() {
+    $("favList").innerHTML = state.favourites.map(function (f) {
+      var t = mealTotal(f.items);
+      var names = f.items.map(function (i) { return i.name; }).join(", ");
+      return '<li><button type="button" class="food" data-fav="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
+        '</span><span class="sub">' + esc(names) + '</span></span><span class="fav-total">' + fmt(t) + ' g<small>' + altUnits(t) + "</small></span></button></li>";
+    }).join("");
+    $("favEmpty").hidden = state.favourites.length > 0;
+    $("favCount").textContent = state.favourites.length;
+  }
+  var openFav = null, delArmed = null;
+  function openFavourite(fav) {
+    openFav = fav;
+    $("fTitle").textContent = fav.name;
+    $("fItems").innerHTML = fav.items.map(function (i) {
+      var desc = i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
+      return "<li><span>" + esc(i.name) + '<span class="sub">' + desc + '</span></span><span class="carbs">' + fmt(i.carbs) + " g</span></li>";
+    }).join("");
+    var t = mealTotal(fav.items);
+    $("fTotal").textContent = fmt(t) + " g";
+    resetDelete();
+    $("favDlg").showModal();
+  }
+  function resetDelete() { clearTimeout(delArmed); delArmed = null; $("fDelete").textContent = "Delete this favourite"; }
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $("toast"); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.hidden = true; }, 2500);
   }
   function renderTotal() {
     var t = total(), el = $("totalG");
@@ -422,11 +506,11 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
 
   // ---------- Views ----------
   function show(view) {
-    var meal = view === "meal";
-    $("view-foods").hidden = meal; $("view-meal").hidden = !meal;
-    $("tab-foods").setAttribute("aria-selected", String(!meal));
-    $("tab-meal").setAttribute("aria-selected", String(meal));
-    $("trayBtn").textContent = meal ? "Add food" : "View meal";
+    ["foods", "meal", "favs"].forEach(function (v) {
+      $("view-" + v).hidden = v !== view;
+      $("tab-" + v).setAttribute("aria-selected", String(v === view));
+    });
+    $("trayBtn").textContent = view === "meal" ? "Add food" : "View meal";
     window.scrollTo(0, 0);
   }
 
@@ -474,7 +558,52 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   // ---------- Events ----------
   $("tab-foods").addEventListener("click", function () { show("foods"); });
   $("tab-meal").addEventListener("click", function () { show("meal"); });
+  $("tab-favs").addEventListener("click", function () { show("favs"); });
   $("trayBtn").addEventListener("click", function () { show($("view-meal").hidden ? "meal" : "foods"); });
+
+  $("saveFavBtn").addEventListener("click", function () {
+    if (!state.meal.length) return;
+    $("saveFavForm").reset(); $("sfErr").hidden = true;
+    var t = total();
+    $("sfMeta").textContent = state.meal.length + (state.meal.length === 1 ? " item" : " items") + " · " + fmt(t) + " g carbs";
+    $("saveFavDlg").showModal();
+  });
+  $("sfCancel").addEventListener("click", function () { $("saveFavDlg").close(); });
+  $("saveFavForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("sfName").value.trim();
+    if (!name) { $("sfErr").textContent = "Give the meal a name."; $("sfErr").hidden = false; return; }
+    var items = state.meal.map(function (i) { return Object.assign({}, i); });
+    var existing = state.favourites.filter(function (f) { return f.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (existing) { existing.name = name; existing.items = items; existing.savedAt = Date.now(); }
+    else state.favourites.unshift({ id: uid(), name: name, items: items, savedAt: Date.now() });
+    save(); renderFavs(); $("saveFavDlg").close();
+    toast(existing ? "Updated " + name : "Saved " + name + " to favourites");
+  });
+  $("favList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-fav]"); if (!b) return;
+    var fav = state.favourites.filter(function (f) { return f.id === b.dataset.fav; })[0];
+    if (fav) openFavourite(fav);
+  });
+  $("fClose").addEventListener("click", function () { $("favDlg").close(); });
+  $("favForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!openFav) return;
+    if (state.example) { state.meal = []; state.example = false; }
+    openFav.items.forEach(function (i) { state.meal.push(Object.assign({}, i, { id: uid() })); });
+    save(); renderMeal(); $("favDlg").close(); show("meal");
+    toast("Added " + openFav.name + " to your meal");
+  });
+  $("fDelete").addEventListener("click", function () {
+    if (!delArmed) {
+      $("fDelete").textContent = "Tap again to delete";
+      delArmed = setTimeout(resetDelete, 3000);
+      return;
+    }
+    resetDelete();
+    state.favourites = state.favourites.filter(function (f) { return f !== openFav; });
+    save(); renderFavs(); $("favDlg").close();
+  });
   $("q").addEventListener("input", renderFoods);
   $("cats").addEventListener("click", function (e) {
     var b = e.target.closest("[data-g]"); if (!b) return;
@@ -566,10 +695,10 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     $({ cp: "uCp", ex: "uEx", g: "uG" }[state.units]).checked = true;
     $("unitsDlg").showModal();
   });
-  $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); });
+  $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); renderFavs(); });
   $("unitsForm").addEventListener("submit", function (e) { e.preventDefault(); $("unitsDlg").close(); });
 
-  load(); renderChips(); renderFoods(); renderMeal();
+  load(); renderChips(); renderFoods(); renderMeal(); renderFavs();
   if (state.example) show("meal");
 })();
 </script>
