@@ -30,5 +30,15 @@
    "caffe nero",
    "nero"
   ]
+ },
+ {
+  "file": "costa.tsv",
+  "chain": "Costa",
+  "source": "Costa Coffee UK menu item pages (per-serving nutrition, standard size and milk as shown)",
+  "url": "https://www.costa.co.uk/menu",
+  "date": "read 14 October 2026",
+  "aliases": [
+   "costa coffee"
+  ]
  }
 ]

@@ -1,0 +1,19 @@
+# Restaurant and café sources
+
+Every figure is carbohydrate per serving, copied from the chain's own published nutrition information. Each value was read at least twice and kept only when the reads agreed. Nothing is estimated.
+
+| Chain | Items | Source | Date |
+|---|---|---|---|
+| Wagamama | 125 | [Allergen and dietary guide, October main menu](https://menus.tenkites.com/wagamamauk/wagamamainternalallergymatrix) | 7 October 2026 |
+| PizzaExpress | 362 | [Nutritional information, England, Wales & Scotland (PDF)](https://www.pizzaexpress.com/-/media/Files/PDFs/Allergens-and-Nutritionals/PEX-Nutritional-Menu---July-26.ashx) | July 2026 |
+| Caffè Nero | 168 | [UK menu pages](https://www.caffenero.com/uk/menu) | No date shown; read 14 October 2026 |
+| Costa | 51 | [UK menu item pages](https://www.costa.co.uk/menu) | No date shown; read 14 October 2026 |
+| Nando's | 0 | nandos.co.uk shows calories only, no carbs | Not added |
+| Starbucks | 0 | [Autumn 2026 guides](https://www.starbucks.co.uk/nutrition-allergens) block automated reading | Not added |
+
+## Notes and exclusions
+
+- **Wagamama:** two delivery-only desserts have their own lower figures and are listed as "(delivery)".
+- **PizzaExpress:** dine-in and "Dine Out" (takeaway) versions are separate rows because they differ. Romana gluten-free pizzas are printed much higher than the regular Romana (Margherita 91.9 g against 156.7 g), and this has been confirmed from the raw row. The last part of the Piccolo kids section could not be read and is missing. Alcohol is excluded.
+- **Caffè Nero:** semi-skimmed is taken as the default milk, and oat rows are kept as well. Northern Ireland-only items are excluded. Three rows that look wrong on the site have been left out: Matcha Latte Regular semi-skimmed (11.1 g), oat Banoffee Matcha Latte (26.3 g), and the NI sausage roll (2.7 g). Iced Brown Sugar Oat Latte is left out because it could not be read.
+- **Costa:** each drink page gives one serving only, so there are no Small/Medium/Large or oat options. In-store and take-out servings are listed separately where they differ. Breakfast items and pastries could not be found on costa.co.uk.
