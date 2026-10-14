@@ -406,7 +406,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   (window.BOLUS_CHAINS || []).forEach(function (c, ci) {
     c.items.forEach(function (it, i) {
       chains.push({ id: "r" + ci + "-" + i, name: c.chain + " · " + it[1], short: it[1], group: c.chain, section: it[0], perServing: it[2], per100: it[2],
-        unit: "serving", portions: [["1 serving", 1]], chain: c.chain, sourceDate: c.date });
+        unit: "serving", portions: [["1 serving", 1]], chain: c.chain, sourceDate: c.date,
+        hay: fold(c.chain + " · " + it[1] + " " + (c.aliases || []).join(" ")) });
     });
   });
   cofid = cofid.concat(chains);
@@ -439,6 +440,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   function perValue(food) { return food.perServing != null ? food.perServing : food.per100; }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
+  // Lower case without accents, so "cafe" finds "Caffè".
+  function fold(s) { return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
   function $(id) { return document.getElementById(id); }
 
   function itemFrom(food, amount, label, pIdx, qty) {
@@ -460,13 +463,13 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     }).join("");
   }
   function renderFoods() {
-    var q = $("q").value.trim().toLowerCase();
+    var q = fold($("q").value.trim());
     var terms = q.split(/\s+/).filter(Boolean);
     // With no search and no group picked, show the common foods; otherwise search everything.
     var pool = (activeGroup === "All" && !q) ? state.custom.concat(foods) : allFoods();
     var list = pool.filter(function (f) {
       if (activeGroup !== "All" && f.group !== activeGroup) return false;
-      var hay = f.name.toLowerCase();
+      var hay = f.hay || fold(f.name);
       return terms.every(function (t) { return hay.indexOf(t) >= 0; });
     });
     if (terms.length) {

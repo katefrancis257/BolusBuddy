@@ -1,6 +1,22 @@
 [
-  {"file": "wagamama.tsv", "chain": "Wagamama",
-   "source": "wagamama allergen information and dietary guide, October main menu",
-   "url": "https://menus.tenkites.com/wagamamauk/wagamamainternalallergymatrix",
-   "date": "7 October 2026"}
+ {
+  "file": "wagamama.tsv",
+  "chain": "Wagamama",
+  "source": "wagamama allergen information and dietary guide, October main menu",
+  "url": "https://menus.tenkites.com/wagamamauk/wagamamainternalallergymatrix",
+  "date": "7 October 2026",
+  "aliases": [
+   "wagamamas"
+  ]
+ },
+ {
+  "file": "pizzaexpress.tsv",
+  "chain": "PizzaExpress",
+  "source": "PizzaExpress nutritional information, England, Wales & Scotland",
+  "url": "https://www.pizzaexpress.com/-/media/Files/PDFs/Allergens-and-Nutritionals/PEX-Nutritional-Menu---July-26.ashx",
+  "date": "July 2026",
+  "aliases": [
+   "pizza express"
+  ]
+ }
 ]
