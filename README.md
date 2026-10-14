@@ -39,3 +39,7 @@ python3 tools/build_foods.py CoFID_2021.xlsx CoFID_oldFoods.xlsx foods.js cofid-
 ```
 
 The common foods, their portions and their CoFID codes are the `CURATED` list in `tools/build_foods.py`.
+
+## Licence and attribution
+
+The food data is derived from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID) 2021, published by Public Health England. Contains public sector information licensed under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/). Scanned product data comes from [Open Food Facts](https://world.openfoodfacts.org), available under the Open Database Licence.
