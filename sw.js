@@ -1,5 +1,5 @@
 // Offline support: cache the app shell, then serve from cache and refresh in the background.
-var CACHE = "bolusbuddy-v4";
+var CACHE = "bolusbuddy-v5";
 var SHELL = ["./", "index.html", "foods.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", function (e) {

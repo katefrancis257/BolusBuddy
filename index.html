@@ -196,6 +196,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     <button id="unitsBtn" class="ghost" type="button">Units</button>
   </header>
 
+  <button id="scanBtn" class="primary-wide" type="button">Scan a barcode or label</button>
+
   <nav class="tabs" role="tablist" aria-label="Views">
     <button id="tab-foods" role="tab" aria-selected="true" aria-controls="view-foods" type="button">Foods</button>
     <button id="tab-meal" role="tab" aria-selected="false" aria-controls="view-meal" type="button">My meal <span id="mealCount" class="count">0</span></button>
@@ -209,7 +211,6 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <ul id="foodList" class="list"></ul>
       <p id="moreHint" class="note" hidden></p>
       <div id="noResults" class="empty" hidden><strong>No foods match</strong>Try another word, or add it from the packet label.</div>
-      <button id="scanBtn" class="primary-wide" type="button">Scan a barcode or label</button>
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
       <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021, Public Health England, Open Government Licence v3.0), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
     </section>
