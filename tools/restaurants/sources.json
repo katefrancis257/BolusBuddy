@@ -18,5 +18,17 @@
   "aliases": [
    "pizza express"
   ]
+ },
+ {
+  "file": "nero.tsv",
+  "chain": "Caffè Nero",
+  "source": "Caffè Nero UK menu pages (per-product nutrition)",
+  "url": "https://www.caffenero.com/uk/menu",
+  "date": "read 14 October 2026",
+  "aliases": [
+   "cafe nero",
+   "caffe nero",
+   "nero"
+  ]
  }
 ]
