@@ -222,6 +222,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
       <button id="eatOutBtn" class="outline wide" type="button">Add a restaurant or café item</button>
       <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021, Public Health England, Open Government Licence v3.0), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
+      <p class="note">Restaurant and café dishes are per serving, copied from each chain's own published nutrition guide. The guide's date is shown on every dish.</p>
     </section>
 
     <section id="view-meal" role="tabpanel" aria-labelledby="tab-meal" hidden>
@@ -382,6 +383,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
 </dialog>
 
 <script src="foods.js"></script>
+<script src="restaurants.js"></script>
 <script>
 (function () {
   "use strict";
@@ -399,6 +401,15 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   var cofid = DATA.cofid.filter(function (f) { return !curatedCodes[f[0]]; }).map(function (f) {
     return { id: "f" + f[0], name: f[1], group: DATA.groups[f[2]], per100: f[3], unit: "g", portions: [], code: f[0], old: !!(f[4] & 1), est: !!(f[4] & 2) };
   });
+  // Restaurant and café menus come from restaurants.js, copied from each chain's own nutrition guide.
+  var chains = [];
+  (window.BOLUS_CHAINS || []).forEach(function (c, ci) {
+    c.items.forEach(function (it, i) {
+      chains.push({ id: "r" + ci + "-" + i, name: c.chain + " · " + it[1], short: it[1], group: c.chain, section: it[0], perServing: it[2], per100: it[2],
+        unit: "serving", portions: [["1 serving", 1]], chain: c.chain, sourceDate: c.date });
+    });
+  });
+  cofid = cofid.concat(chains);
   var byId = {};
   foods.concat(cofid).forEach(function (f) { byId[f.id] = f; });
   var state = { meal: [], custom: [], favourites: [], units: "cp", example: false };
@@ -466,19 +477,22 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       });
     }
     var found = list.length;
-    list = list.slice(0, MAX_ROWS);
+    // A chain's menu is short enough to show whole, under its own section headings.
+    var menu = !q && list.length > 0 && list[0].chain === activeGroup;
+    list = list.slice(0, menu ? found : MAX_ROWS);
     var html = "", last = null, showHeads = activeGroup === "All" && !q;
     list.forEach(function (f) {
       if (showHeads && f.group !== last) { html += '<li class="cat-head">' + esc(f.group) + "</li>"; last = f.group; }
+      if (menu && f.section !== last) { html += '<li class="cat-head">' + esc(f.section) + "</li>"; last = f.section; }
       var p = f.portions[0];
-      var sub = f.perServing != null ? esc(f.group) + " · per serving" : p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs"
+      var sub = f.chain ? (menu ? "" : esc(f.section) + " · ") + esc(f.chain) + " menu, " + esc(f.sourceDate) : f.perServing != null ? esc(f.group) + " · per serving" : p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs"
         : (f.code ? "CoFID " + esc(f.code) + (f.old ? " · older data" : "") + (f.est ? " · estimated" : "") + " · weigh it" : "Enter the weight");
-      html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
+      html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(menu ? f.short : f.name) +
         '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(perValue(f)) + " g</b>" + perLabel(f) + "</span></button></li>";
     });
     $("foodList").innerHTML = html;
     $("noResults").hidden = found > 0;
-    $("moreHint").hidden = !(showHeads || found > MAX_ROWS);
+    $("moreHint").hidden = !(showHeads || (found > MAX_ROWS && !menu));
     $("moreHint").textContent = showHeads
       ? "Showing common foods. Search or pick a group to see all " + (foods.length + cofid.length).toLocaleString("en-GB") + " foods."
       : "Showing " + MAX_ROWS + " of " + found.toLocaleString("en-GB") + " matches. Add another word to narrow the list.";
@@ -564,11 +578,12 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     pFood = food; pItemId = item ? item.id : null;
     $("pGrams").value = "";
     $("pTitle").textContent = food.name;
-    $("pMeta").textContent = fmt(perValue(food)) + " g carbs " + perLabel(food) + " · " + food.group + (food.code ? " · CoFID " + food.code : "");
+    $("pMeta").textContent = fmt(perValue(food)) + " g carbs " + perLabel(food) + " · " + food.group + (food.code ? " · CoFID " + food.code : "") +
+      (food.chain ? " · from " + food.chain + "'s nutrition guide, " + food.sourceDate + ". Recipes change, so check in the restaurant if unsure." : "");
     $("pGramsLbl").textContent = food.perServing != null ? "Servings" : food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
     $("pPortions").innerHTML = food.portions.map(function (p, i) {
-      return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + " · " + p[1] + " " + food.unit + "</button>";
-    }).join("") + '<button type="button" class="chip" data-p="-1">Weigh it</button>';
+      return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + (food.unit === "serving" ? "" : " · " + p[1] + " " + food.unit) + "</button>";
+    }).join("") + '<button type="button" class="chip" data-p="-1">' + (food.perServing != null ? "Other amount" : "Weigh it") + "</button>";
     $("pAdd").textContent = item ? "Update" : "Add to meal";
     $("pDelete").hidden = !(state.custom.indexOf(food) >= 0 && !item);
     if (item) {

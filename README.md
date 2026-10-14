@@ -10,6 +10,7 @@ BolusBuddy counts carbohydrate only. It does not work out insulin doses.
 - Search and food groups, plus portion presets with a quantity stepper, or a weight you enter yourself.
 - A running meal total in grams, shown as 10 g carb portions (CP) or 15 g exchanges if you prefer.
 - Your own foods, added from a packet label and saved on your phone.
+- Restaurant and café menus with per-serving carbs copied from each chain's own nutrition guide (see `tools/restaurants/sources.json`). Pick a chain in the group chips, or search, for example "wagamama katsu".
 - Quick entry of a carb figure from a label or menu, with UK restaurant and café chains suggested. Items can be remembered under Eating out and added again in one tap.
 - Favourite meals: save a meal with its total carbs and add it back in one tap.
 - Barcode scanner: live camera scanning (or a photo of the barcode) looks the product up on Open Food Facts and fills in its carbs for you to check and save. Saved products are found instantly next time.
@@ -44,3 +45,11 @@ The common foods, their portions and their CoFID codes are the `CURATED` list in
 ## Licence and attribution
 
 The food data is derived from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID) 2021, published by Public Health England. Contains public sector information licensed under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/). Scanned product data comes from [Open Food Facts](https://world.openfoodfacts.org), available under the Open Database Licence.
+
+Restaurant menus are built with:
+
+```
+python3 tools/build_restaurants.py
+```
+
+Each chain is one TSV in `tools/restaurants/` with its source and date in `sources.json`. Every figure was read at least twice from the chain's own guide and kept only when the reads agreed.
