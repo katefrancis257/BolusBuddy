@@ -220,6 +220,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
         <ul id="brandList" class="list"></ul>
       </div>
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
+      <button id="eatOutBtn" class="outline wide" type="button">Add a restaurant or café item</button>
       <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021, Public Health England, Open Government Licence v3.0), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
     </section>
 
@@ -228,7 +229,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <ul id="mealList" class="list"></ul>
       <div id="mealEmpty" class="empty" hidden><strong>Your meal is empty</strong>Pick foods from the Foods tab and they will add up here.</div>
       <div class="row-actions">
-        <button id="quickAddBtn" class="outline" type="button">Add carbs from a label</button>
+        <button id="quickAddBtn" class="outline" type="button">Add carbs from a label or menu</button>
         <button id="saveFavBtn" class="outline" type="button">Save as favourite</button>
         <button id="clearMeal" class="danger-ghost" type="button">Clear meal</button>
       </div>
@@ -307,10 +308,12 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
 
 <dialog id="quickDlg" aria-labelledby="qTitle">
   <form class="sheet" id="quickForm" method="dialog">
-    <h2 id="qTitle">Add carbs from a label</h2>
-    <p class="meta">For a packet that gives carbs per serving, or a restaurant menu.</p>
-    <div class="field"><label for="qName">What is it?</label><input id="qName" maxlength="60" placeholder="For example, meal deal sandwich"></div>
-    <div class="field"><label for="qCarbs">Carbohydrate (g)</label><input id="qCarbs" type="number" inputmode="decimal" min="0" step="any" required></div>
+    <h2 id="qTitle">Add carbs from a label or menu</h2>
+    <p class="meta">For a packet that gives carbs per serving, or a restaurant or café item. Chains publish carbs per item in their nutrition information, usually on their website or app.</p>
+    <div class="field"><label for="qPlace">Restaurant or café (optional)</label><input id="qPlace" maxlength="30" list="chainList" autocomplete="off" placeholder="For example, Nando's"><datalist id="chainList"><option value="McDonald's"></option><option value="Burger King"></option><option value="KFC"></option><option value="Nando's"></option><option value="Greggs"></option><option value="Subway"></option><option value="Pizza Express"></option><option value="Pizza Hut"></option><option value="Domino's"></option><option value="Papa John's"></option><option value="Wagamama"></option><option value="Five Guys"></option><option value="Pret A Manger"></option><option value="Costa Coffee"></option><option value="Starbucks"></option><option value="Caffè Nero"></option><option value="Wetherspoon"></option><option value="Toby Carvery"></option><option value="Harvester"></option><option value="Frankie &amp; Benny's"></option><option value="Zizzi"></option><option value="ASK Italian"></option><option value="Prezzo"></option><option value="Bella Italia"></option><option value="Leon"></option><option value="Itsu"></option><option value="Wasabi"></option><option value="YO! Sushi"></option><option value="TGI Fridays"></option><option value="Taco Bell"></option><option value="Popeyes"></option><option value="Chopstix"></option><option value="Tortilla"></option><option value="Las Iguanas"></option><option value="Beefeater"></option><option value="Brewers Fayre"></option></datalist></div>
+    <div class="field"><label for="qName">What is it?</label><input id="qName" maxlength="60" placeholder="For example, 1/4 chicken with peri chips"></div>
+    <div class="field"><label for="qCarbs">Carbohydrate per serving (g)</label><input id="qCarbs" type="number" inputmode="decimal" min="0" step="any" required></div>
+    <label class="radio"><input type="checkbox" id="qRemember"><span>Remember this for next time<small>Saved under Eating out, so you can add it again in one tap.</small></span></label>
     <p class="err" id="qErr" hidden></p>
     <div class="actions">
       <button type="button" id="qCancel">Cancel</button>
@@ -403,7 +406,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   function load() {
     try {
       var raw = localStorage.getItem(STORE);
-      if (raw) { var s = JSON.parse(raw); if (s && Array.isArray(s.meal)) { state = Object.assign(state, s); return; } }
+      if (raw) { var s = JSON.parse(raw); if (s && Array.isArray(s.meal)) { state = Object.assign(state, s); state.custom.forEach(function (f) { f.custom = true; }); return; } }
     } catch (e) {}
     // First run: show a worked example so the total tray makes sense straight away.
     state.example = true;
@@ -420,7 +423,9 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   function findById(id) { return byId[id] || state.custom.filter(function (f) { return f.id === id; })[0]; }
   function round1(n) { return Math.round(n * 10) / 10; }
   function fmt(n) { var r = round1(n); return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)); }
-  function carbsFor(food, amount) { return food.per100 * amount / 100; }
+  function carbsFor(food, amount) { return food.perServing != null ? food.perServing * amount : food.per100 * amount / 100; }
+  function perLabel(food) { return food.perServing != null ? "per serving" : "per 100 " + food.unit; }
+  function perValue(food) { return food.perServing != null ? food.perServing : food.per100; }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
   function $(id) { return document.getElementById(id); }
@@ -434,7 +439,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   var activeGroup = "All";
   function groups() {
     var g = ["All"];
-    if (state.custom.length) g.push("My foods");
+    state.custom.forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
     foods.concat(cofid).forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
     return g;
   }
@@ -455,8 +460,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     });
     if (terms.length) {
       list.sort(function (a, b) {
-        var ra = (a.common || a.group === "My foods" ? 0 : 2) + (a.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
-        var rb = (b.common || b.group === "My foods" ? 0 : 2) + (b.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
+        var ra = (a.common || a.custom ? 0 : 2) + (a.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
+        var rb = (b.common || b.custom ? 0 : 2) + (b.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
         return ra - rb || a.name.length - b.name.length;
       });
     }
@@ -466,10 +471,10 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     list.forEach(function (f) {
       if (showHeads && f.group !== last) { html += '<li class="cat-head">' + esc(f.group) + "</li>"; last = f.group; }
       var p = f.portions[0];
-      var sub = p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs"
+      var sub = f.perServing != null ? esc(f.group) + " · per serving" : p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs"
         : (f.code ? "CoFID " + esc(f.code) + (f.old ? " · older data" : "") + (f.est ? " · estimated" : "") + " · weigh it" : "Enter the weight");
       html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
-        '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(f.per100) + " g</b>per 100 " + f.unit + "</span></button></li>";
+        '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(perValue(f)) + " g</b>" + perLabel(f) + "</span></button></li>";
     });
     $("foodList").innerHTML = html;
     $("noResults").hidden = found > 0;
@@ -483,7 +488,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   function total() { return state.meal.reduce(function (s, i) { return s + i.carbs; }, 0); }
   function renderMeal() {
     $("mealList").innerHTML = state.meal.map(function (i) {
-      var desc = i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
+      var desc = i.unit === "serving" ? esc(i.label || fmt(i.amount) + " servings") : i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
       return '<li class="item"><button type="button" class="food" data-item="' + i.id + '"' + (i.foodId ? "" : " disabled") + '><span class="txt"><span class="name">' +
         esc(i.name) + '</span><span class="sub">' + desc + '</span></span><span class="carbs">' + fmt(i.carbs) + ' g<small>carbs</small></span></button>' +
         '<button type="button" class="remove" data-remove="' + i.id + '" aria-label="Remove ' + esc(i.name) + '">×</button></li>';
@@ -517,7 +522,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     openFav = fav;
     $("fTitle").textContent = fav.name;
     $("fItems").innerHTML = fav.items.map(function (i) {
-      var desc = i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
+      var desc = i.unit === "serving" ? esc(i.label || fmt(i.amount) + " servings") : i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
       return "<li><span>" + esc(i.name) + '<span class="sub">' + desc + '</span></span><span class="carbs">' + fmt(i.carbs) + " g</span></li>";
     }).join("");
     var t = mealTotal(fav.items);
@@ -559,13 +564,13 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     pFood = food; pItemId = item ? item.id : null;
     $("pGrams").value = "";
     $("pTitle").textContent = food.name;
-    $("pMeta").textContent = fmt(food.per100) + " g carbs per 100 " + food.unit + " · " + food.group + (food.code ? " · CoFID " + food.code : "");
-    $("pGramsLbl").textContent = food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
+    $("pMeta").textContent = fmt(perValue(food)) + " g carbs " + perLabel(food) + " · " + food.group + (food.code ? " · CoFID " + food.code : "");
+    $("pGramsLbl").textContent = food.perServing != null ? "Servings" : food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
     $("pPortions").innerHTML = food.portions.map(function (p, i) {
       return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + " · " + p[1] + " " + food.unit + "</button>";
     }).join("") + '<button type="button" class="chip" data-p="-1">Weigh it</button>';
     $("pAdd").textContent = item ? "Update" : "Add to meal";
-    $("pDelete").hidden = !(food.group === "My foods" && !item);
+    $("pDelete").hidden = !(state.custom.indexOf(food) >= 0 && !item);
     if (item) {
       if (item.pIdx != null && food.portions[item.pIdx]) { selectPortion(item.pIdx, item.qty); }
       else { selectPortion(-1); $("pGrams").value = fmt(item.amount); }
@@ -688,7 +693,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   });
   $("pDelete").addEventListener("click", function () {
     state.custom = state.custom.filter(function (f) { return f.id !== pFood.id; });
-    if (!state.custom.length && activeGroup === "My foods") activeGroup = "All";
+    if (!state.custom.some(function (f) { return f.group === activeGroup; }) && (activeGroup === "My foods" || activeGroup === "Eating out")) activeGroup = "All";
     save(); renderChips(); renderFoods(); $("portionDlg").close();
   });
 
@@ -714,7 +719,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     if (!name || !(c >= 0 && c <= 100)) { $("cErr").textContent = "Enter a name and a carb figure between 0 and 100."; $("cErr").hidden = false; return; }
     var unit = $("cUnit").value;
     var portions = pg > 0 ? [[$("cPortion").value.trim() || "1 portion", pg]] : [];
-    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions, barcode: cBarcode };
+    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions, barcode: cBarcode, custom: true };
     if (cBarcode) state.custom = state.custom.filter(function (f) { return f.barcode !== cBarcode; });
     state.custom.unshift(food); save();
     activeGroup = "My foods"; $("q").value = ""; renderChips(); renderFoods();
@@ -722,13 +727,26 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     openPortion(food);
   });
 
-  $("quickAddBtn").addEventListener("click", function () { $("quickForm").reset(); $("qErr").hidden = true; $("quickDlg").showModal(); });
+  function openQuick(focusPlace) { $("quickForm").reset(); $("qErr").hidden = true; $("quickDlg").showModal(); if (focusPlace) $("qPlace").focus(); }
+  $("quickAddBtn").addEventListener("click", function () { openQuick(false); });
+  $("eatOutBtn").addEventListener("click", function () { openQuick(true); });
   $("qCancel").addEventListener("click", function () { $("quickDlg").close(); });
   $("quickForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var c = parseFloat($("qCarbs").value);
     if (!(c >= 0)) { $("qErr").textContent = "Enter the carbohydrate in grams."; $("qErr").hidden = false; return; }
-    state.meal.push({ id: uid(), foodId: null, name: $("qName").value.trim() || "Label value", amount: null, unit: "g", label: "", carbs: c });
+    var place = $("qPlace").value.trim(), item = $("qName").value.trim();
+    var name = (place && item ? place + " · " + item : place || item || "Label value").slice(0, 60);
+    if ($("qRemember").checked) {
+      var food = { id: "c" + uid(), name: name, group: place ? "Eating out" : "My foods", perServing: c, per100: c, unit: "serving",
+        portions: [["1 serving", 1]], custom: true };
+      state.custom.unshift(food);
+      if (state.example) { state.meal = []; state.example = false; }
+      state.meal.push(itemFrom(food, 1, "1 serving", 0, 1));
+      renderChips(); renderFoods();
+    } else {
+      state.meal.push({ id: uid(), foodId: null, name: name, amount: null, unit: "g", label: "", carbs: c });
+    }
     clearExampleFlag(); save(); renderMeal(); $("quickDlg").close();
   });
 

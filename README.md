@@ -10,7 +10,7 @@ BolusBuddy counts carbohydrate only. It does not work out insulin doses.
 - Search and food groups, plus portion presets with a quantity stepper, or a weight you enter yourself.
 - A running meal total in grams, shown as 10 g carb portions (CP) or 15 g exchanges if you prefer.
 - Your own foods, added from a packet label and saved on your phone.
-- Quick entry of a carb figure from a label or menu.
+- Quick entry of a carb figure from a label or menu, with UK restaurant and café chains suggested. Items can be remembered under Eating out and added again in one tap.
 - Favourite meals: save a meal with its total carbs and add it back in one tap.
 - Barcode scanner: live camera scanning (or a photo of the barcode) looks the product up on Open Food Facts and fills in its carbs for you to check and save. Saved products are found instantly next time.
 - Branded and supermarket own-brand products: search Open Food Facts by name (for example "Hovis wholemeal"), optionally narrowed to a shop such as Tesco or Aldi, and save the product you pick to My foods.
