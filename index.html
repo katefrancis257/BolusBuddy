@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E6B74">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BolusBuddy">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- app-head:start -->
+<title>BolusBuddy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap">
+<style>
+/* Layout: one-column phone app; catalogue and meal views, with a fixed carb-total tray at the bottom. */
+:root {
+  --bg: #F2F5F4;
+  --surface: #FFFFFF;
+  --ink: #15201E;
+  --muted: #566663;
+  --line: #D6DFDD;
+  --accent: #0E6B74;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DDEEEE;
+  --danger: #A63A2B;
+  --tray: #15201E;
+  --tray-ink: #F2F5F4;
+  --tray-muted: #A9BAB6;
+  --font-display: "Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1514; --surface: #182120; --ink: #E6EEEC; --muted: #9AABA7; --line: #2A3735;
+    --accent: #5CC3C9; --accent-ink: #062224; --accent-soft: #163A3C; --danger: #F08A78;
+    --tray: #E6EEEC; --tray-ink: #0F1514; --tray-muted: #4C5D5A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1514; --surface: #182120; --ink: #E6EEEC; --muted: #9AABA7; --line: #2A3735;
+  --accent: #5CC3C9; --accent-ink: #062224; --accent-soft: #163A3C; --danger: #F08A78;
+  --tray: #E6EEEC; --tray-ink: #0F1514; --tray-muted: #4C5D5A;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  max-width: 560px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px calc(120px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 14px;
+}
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 8px; }
+.brand h1 { font-family: var(--font-display); font-size: 1.75rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.875rem; }
+.ghost { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 0.875rem; }
+
+.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+.tabs button { border: 0; background: none; border-radius: 9px; padding: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.count { font-family: var(--font-data); font-size: 0.8rem; min-width: 1.6em; padding: 0 6px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+.tabs button[aria-selected="true"] .count { background: var(--accent-ink); color: var(--accent); }
+
+section { display: flex; flex-direction: column; gap: 12px; }
+.search input {
+  width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); font-size: 1rem;
+}
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 13px; font-size: 0.875rem; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.list li + li { border-top: 1px solid var(--line); }
+.list:empty { display: none; }
+.food { width: 100%; text-align: left; background: none; border: 0; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.food .txt { flex: 1; min-width: 0; }
+.food .name { font-weight: 600; display: block; }
+.food .sub { color: var(--muted); font-size: 0.85rem; display: block; }
+.per100 { font-family: var(--font-data); font-size: 0.85rem; text-align: right; color: var(--muted); flex: none; }
+.per100 b { display: block; color: var(--ink); font-size: 1rem; font-weight: 600; }
+.cat-head { padding: 8px 14px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); background: var(--bg); }
+
+.item { display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 0; }
+.item .food { padding-right: 4px; }
+.item .carbs { font-family: var(--font-data); font-weight: 600; font-size: 1.05rem; text-align: right; flex: none; }
+.item .carbs small { display: block; font-weight: 400; font-size: 0.75rem; color: var(--muted); }
+.remove { flex: none; width: 40px; height: 40px; border-radius: 10px; border: 0; background: none; color: var(--muted); font-size: 1.4rem; line-height: 1; }
+.remove:hover { color: var(--danger); }
+
+.outline { border: 1.5px solid var(--accent); color: var(--accent); background: none; border-radius: 12px; padding: 11px 14px; font-weight: 600; }
+.wide { width: 100%; }
+.row-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.row-actions > * { flex: 1 1 160px; }
+.danger-ghost { border: 1px solid var(--line); background: none; color: var(--danger); border-radius: 12px; padding: 11px 14px; font-weight: 600; }
+.note { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.banner { background: var(--accent-soft); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
+.banner button { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 6px 12px; font-weight: 600; }
+.empty { text-align: center; padding: 28px 16px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; }
+.empty strong { display: block; color: var(--ink); font-size: 1.05rem; margin-bottom: 4px; }
+
+.tray {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--tray); color: var(--tray-ink);
+  padding-top: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.tray-inner { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.tray-num { flex: 1; min-width: 0; }
+.tray-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--tray-muted); }
+.total { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.unit { font-size: 1rem; margin-left: 4px; }
+.alt { font-family: var(--font-data); font-size: 0.85rem; color: var(--tray-muted); }
+.tray button { border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+
+dialog {
+  border: 0; padding: 0; width: min(520px, calc(100vw - 24px)); border-radius: 18px;
+  background: var(--surface); color: var(--ink); max-height: calc(100dvh - 32px);
+}
+dialog::backdrop { background: rgb(10 16 15 / 0.55); }
+.sheet { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.sheet h2 { font-family: var(--font-display); font-size: 1.4rem; margin: 0; line-height: 1.15; text-wrap: balance; }
+.sheet .meta { color: var(--muted); font-size: 0.9rem; margin: -8px 0 0; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label, .field .lbl { font-size: 0.85rem; font-weight: 600; }
+.field input, .field select { padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 1rem; width: 100%; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.portions { display: flex; flex-wrap: wrap; gap: 8px; }
+.stepper { display: grid; grid-template-columns: 48px 1fr 48px; gap: 8px; align-items: center; }
+.stepper button { height: 48px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 1.4rem; }
+.stepper output { text-align: center; font-family: var(--font-data); font-size: 1.2rem; font-weight: 600; }
+.result { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; }
+.result span { font-size: 0.9rem; }
+.result b { font-family: var(--font-display); font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 10px; }
+.actions button { flex: 1; padding: 13px; border-radius: 12px; font-weight: 700; border: 1px solid var(--line); background: none; }
+.actions .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.radio { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.radio input { margin-top: 4px; accent-color: var(--accent); }
+.radio small { display: block; color: var(--muted); }
+.err { color: var(--danger); font-size: 0.85rem; margin: 0; }
+.del-custom { align-self: flex-start; border: 0; background: none; color: var(--danger); padding: 0; font-size: 0.875rem; text-decoration: underline; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .total { transition: color 0.2s; }
+  .bump { animation: bump 0.35s ease-out; }
+  @keyframes bump { 40% { transform: scale(1.08); } }
+}
+</style>
+<!-- app-head:end -->
+</head>
+<body>
+<!-- app-body:start -->
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>BolusBuddy</h1>
+      <p>Count the carbs in your meal</p>
+    </div>
+    <button id="unitsBtn" class="ghost" type="button">Units</button>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button id="tab-foods" role="tab" aria-selected="true" aria-controls="view-foods" type="button">Foods</button>
+    <button id="tab-meal" role="tab" aria-selected="false" aria-controls="view-meal" type="button">My meal <span id="mealCount" class="count">0</span></button>
+  </nav>
+
+  <main>
+    <section id="view-foods" role="tabpanel" aria-labelledby="tab-foods">
+      <div class="search"><input id="q" type="search" placeholder="Search foods, for example bagel" autocomplete="off" aria-label="Search foods"></div>
+      <div id="cats" class="chips" aria-label="Food groups"></div>
+      <ul id="foodList" class="list"></ul>
+      <div id="noResults" class="empty" hidden><strong>No foods match</strong>Try another word, or add it from the packet label.</div>
+      <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
+      <p class="note">Figures are typical UK values for carbohydrate per 100 g (or 100 ml). Brands and recipes vary, so check the packet when you have it.</p>
+    </section>
+
+    <section id="view-meal" role="tabpanel" aria-labelledby="tab-meal" hidden>
+      <div id="exampleBanner" class="banner" hidden><span>This is an example meal.</span><button id="clearExample" type="button">Clear and start</button></div>
+      <ul id="mealList" class="list"></ul>
+      <div id="mealEmpty" class="empty" hidden><strong>Your meal is empty</strong>Pick foods from the Foods tab and they will add up here.</div>
+      <div class="row-actions">
+        <button id="quickAddBtn" class="outline" type="button">Add carbs from a label</button>
+        <button id="clearMeal" class="danger-ghost" type="button">Clear meal</button>
+      </div>
+      <p class="note">BolusBuddy counts carbohydrate only. It does not work out insulin doses. Use your own ratio and the advice of your diabetes team.</p>
+    </section>
+  </main>
+</div>
+
+<footer class="tray">
+  <div class="tray-inner">
+    <div class="tray-num" aria-live="polite">
+      <span class="tray-label">Meal total</span>
+      <span id="totalG" class="total">0</span><span class="unit">g carbs</span>
+      <div id="totalAlt" class="alt"></div>
+    </div>
+    <button id="trayBtn" type="button">View meal</button>
+  </div>
+</footer>
+
+<dialog id="portionDlg" aria-labelledby="pTitle">
+  <form class="sheet" id="portionForm" method="dialog">
+    <h2 id="pTitle">Food</h2>
+    <p class="meta" id="pMeta"></p>
+    <div class="field">
+      <span class="lbl">Portion</span>
+      <div class="portions" id="pPortions"></div>
+    </div>
+    <div class="field" id="pQtyField">
+      <span class="lbl">How many</span>
+      <div class="stepper">
+        <button type="button" id="pMinus" aria-label="Fewer">−</button>
+        <output id="pQty">1</output>
+        <button type="button" id="pPlus" aria-label="More">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="pGrams" id="pGramsLbl">Weight (g)</label>
+      <input id="pGrams" type="number" inputmode="decimal" min="0" step="any">
+    </div>
+    <div class="result"><span>Carbohydrate</span><b id="pCarbs">0 g</b></div>
+    <button type="button" id="pDelete" class="del-custom" hidden>Delete this food from my foods</button>
+    <div class="actions">
+      <button type="button" id="pCancel">Cancel</button>
+      <button type="submit" class="primary" id="pAdd">Add to meal</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="customDlg" aria-labelledby="cTitle">
+  <form class="sheet" id="customForm" method="dialog">
+    <h2 id="cTitle">Add a food from a packet label</h2>
+    <p class="meta">Use the "Carbohydrate" figure from the per 100 g column. It is saved on this phone under My foods.</p>
+    <div class="field"><label for="cName">Food name</label><input id="cName" required maxlength="60" placeholder="For example, Tesco seeded wrap"></div>
+    <div class="two">
+      <div class="field"><label for="cCarbs">Carbs per 100</label><input id="cCarbs" type="number" inputmode="decimal" min="0" max="100" step="any" required></div>
+      <div class="field"><label for="cUnit">Measured in</label><select id="cUnit"><option value="g">grams</option><option value="ml">millilitres</option></select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="cPortion">Portion name (optional)</label><input id="cPortion" maxlength="30" placeholder="1 wrap"></div>
+      <div class="field"><label for="cPortionG">Portion weight</label><input id="cPortionG" type="number" inputmode="decimal" min="0" step="any" placeholder="62"></div>
+    </div>
+    <p class="err" id="cErr" hidden></p>
+    <div class="actions">
+      <button type="button" id="cCancel">Cancel</button>
+      <button type="submit" class="primary">Save food</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="quickDlg" aria-labelledby="qTitle">
+  <form class="sheet" id="quickForm" method="dialog">
+    <h2 id="qTitle">Add carbs from a label</h2>
+    <p class="meta">For a packet that gives carbs per serving, or a restaurant menu.</p>
+    <div class="field"><label for="qName">What is it?</label><input id="qName" maxlength="60" placeholder="For example, meal deal sandwich"></div>
+    <div class="field"><label for="qCarbs">Carbohydrate (g)</label><input id="qCarbs" type="number" inputmode="decimal" min="0" step="any" required></div>
+    <p class="err" id="qErr" hidden></p>
+    <div class="actions">
+      <button type="button" id="qCancel">Cancel</button>
+      <button type="submit" class="primary">Add to meal</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="unitsDlg" aria-labelledby="uTitle">
+  <form class="sheet" id="unitsForm" method="dialog">
+    <h2 id="uTitle">Show the total as</h2>
+    <label class="radio"><input type="radio" name="units" value="cp" id="uCp"><span>Grams and 10 g carb portions<small>Common in UK clinics (1 CP = 10 g)</small></span></label>
+    <label class="radio"><input type="radio" name="units" value="ex" id="uEx"><span>Grams and 15 g exchanges<small>Common in US guidance (1 exchange = 15 g)</small></span></label>
+    <label class="radio"><input type="radio" name="units" value="g" id="uG"><span>Grams only</span></label>
+    <div class="actions"><button type="submit" class="primary">Done</button></div>
+  </form>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  // [name, group, carbs per 100 g or ml, unit, [[portion label, weight], ...]]
+  // Typical UK values for available carbohydrate. Approximate; brands vary.
+  var FOODS = [
+    ["White bread", "Bread", 46, "g", [["1 medium slice", 36], ["1 thick slice", 44]]],
+    ["Wholemeal bread", "Bread", 42, "g", [["1 medium slice", 36], ["1 thick slice", 44]]],
+    ["Seeded or granary bread", "Bread", 43, "g", [["1 slice", 44]]],
+    ["White bread roll", "Bread", 50, "g", [["1 roll", 60]]],
+    ["Burger bun", "Bread", 47, "g", [["1 bun", 60]]],
+    ["Bagel, plain", "Bread", 50, "g", [["1 bagel", 85]]],
+    ["Pitta bread, white", "Bread", 55, "g", [["1 pitta", 60], ["1 mini pitta", 30]]],
+    ["Tortilla wrap, plain", "Bread", 50, "g", [["1 wrap", 62], ["1 mini wrap", 35]]],
+    ["Naan bread, plain", "Bread", 50, "g", [["1 large naan", 160], ["1 mini naan", 65]]],
+    ["Crumpet", "Bread", 38, "g", [["1 crumpet", 55]]],
+    ["English muffin", "Bread", 44, "g", [["1 muffin", 65]]],
+    ["Croissant", "Bread", 43, "g", [["1 croissant", 60]]],
+    ["Crispbread (rye)", "Bread", 66, "g", [["1 crispbread", 10]]],
+    ["Rice cake", "Bread", 80, "g", [["1 rice cake", 8]]],
+
+    ["Porridge oats (dry)", "Cereal", 60, "g", [["1 sachet or small bowl", 40], ["1 tablespoon", 10]]],
+    ["Wheat biscuits (e.g. Weetabix)", "Cereal", 69, "g", [["1 biscuit", 19]]],
+    ["Shredded wheat", "Cereal", 68, "g", [["1 biscuit", 22]]],
+    ["Cornflakes", "Cereal", 84, "g", [["1 bowl", 30]]],
+    ["Crisped rice cereal", "Cereal", 87, "g", [["1 bowl", 30]]],
+    ["Bran flakes", "Cereal", 66, "g", [["1 bowl", 30]]],
+    ["Muesli", "Cereal", 66, "g", [["1 bowl", 45]]],
+    ["Granola", "Cereal", 60, "g", [["1 bowl", 45]]],
+
+    ["White rice, boiled", "Rice & pasta", 31, "g", [["1 portion", 180], ["1 tablespoon", 25]]],
+    ["Brown rice, boiled", "Rice & pasta", 32, "g", [["1 portion", 180], ["1 tablespoon", 25]]],
+    ["Rice, uncooked", "Rice & pasta", 79, "g", [["1 portion", 75]]],
+    ["Pasta, boiled", "Rice & pasta", 31, "g", [["1 portion", 230], ["1 small portion", 150]]],
+    ["Wholewheat pasta, boiled", "Rice & pasta", 27, "g", [["1 portion", 230]]],
+    ["Pasta, uncooked", "Rice & pasta", 72, "g", [["1 portion", 75]]],
+    ["Egg noodles, boiled", "Rice & pasta", 25, "g", [["1 portion", 200]]],
+    ["Rice noodles, boiled", "Rice & pasta", 24, "g", [["1 portion", 200]]],
+    ["Couscous, cooked", "Rice & pasta", 23, "g", [["1 portion", 150]]],
+    ["Quinoa, cooked", "Rice & pasta", 19, "g", [["1 portion", 150]]],
+
+    ["Potatoes, boiled", "Potatoes", 17, "g", [["1 portion", 175], ["1 egg-sized potato", 50]]],
+    ["Mashed potato", "Potatoes", 15, "g", [["1 portion", 180], ["1 scoop", 60]]],
+    ["Jacket potato, with skin", "Potatoes", 22, "g", [["1 medium", 180], ["1 large", 250]]],
+    ["Roast potatoes", "Potatoes", 26, "g", [["1 roast potato", 60]]],
+    ["Oven chips", "Potatoes", 30, "g", [["1 portion", 165]]],
+    ["Chip shop chips", "Potatoes", 30, "g", [["1 portion", 200]]],
+    ["Sweet potato, baked", "Potatoes", 21, "g", [["1 medium", 130]]],
+
+    ["Apple", "Fruit", 12, "g", [["1 medium", 150]]],
+    ["Banana, peeled", "Fruit", 20, "g", [["1 medium", 100], ["1 large", 130]]],
+    ["Orange, peeled", "Fruit", 8.5, "g", [["1 medium", 160]]],
+    ["Satsuma or clementine, peeled", "Fruit", 8, "g", [["1 fruit", 70]]],
+    ["Pear", "Fruit", 10, "g", [["1 medium", 160]]],
+    ["Grapes", "Fruit", 15, "g", [["1 handful", 80]]],
+    ["Strawberries", "Fruit", 6, "g", [["1 handful", 80]]],
+    ["Blueberries", "Fruit", 10, "g", [["1 handful", 80]]],
+    ["Kiwi fruit", "Fruit", 10, "g", [["1 fruit", 75]]],
+    ["Mango", "Fruit", 14, "g", [["1 portion", 80]]],
+    ["Pineapple", "Fruit", 10, "g", [["1 portion", 80]]],
+    ["Melon", "Fruit", 6, "g", [["1 slice", 150]]],
+    ["Watermelon", "Fruit", 7, "g", [["1 slice", 200]]],
+    ["Raisins", "Fruit", 69, "g", [["1 mini box", 14], ["1 tablespoon", 25]]],
+    ["Dates, dried", "Fruit", 68, "g", [["1 date", 8]]],
+
+    ["Peas", "Veg & beans", 10, "g", [["1 portion", 80]]],
+    ["Sweetcorn", "Veg & beans", 15, "g", [["1 portion", 80]]],
+    ["Carrots, boiled", "Veg & beans", 4.5, "g", [["1 portion", 80]]],
+    ["Parsnips, roasted", "Veg & beans", 13, "g", [["1 portion", 80]]],
+    ["Butternut squash", "Veg & beans", 7, "g", [["1 portion", 80]]],
+    ["Broccoli", "Veg & beans", 2, "g", [["1 portion", 80]]],
+    ["Tomato", "Veg & beans", 3, "g", [["1 medium", 85]]],
+    ["Salad leaves", "Veg & beans", 1.5, "g", [["1 bowl", 50]]],
+    ["Baked beans", "Veg & beans", 13, "g", [["Half a can", 207], ["1 small can", 150]]],
+    ["Chickpeas, canned", "Veg & beans", 15, "g", [["1 portion", 80]]],
+    ["Kidney beans, canned", "Veg & beans", 14, "g", [["1 portion", 80]]],
+    ["Lentils, boiled", "Veg & beans", 17, "g", [["1 portion", 80]]],
+
+    ["Semi-skimmed milk", "Dairy & drinks", 4.8, "ml", [["1 glass", 200], ["In tea or coffee", 30]]],
+    ["Whole milk", "Dairy & drinks", 4.7, "ml", [["1 glass", 200]]],
+    ["Oat drink", "Dairy & drinks", 6.5, "ml", [["1 glass", 200]]],
+    ["Natural yoghurt", "Dairy & drinks", 6, "g", [["1 pot", 125]]],
+    ["Greek-style yoghurt", "Dairy & drinks", 4, "g", [["1 pot", 125]]],
+    ["Fruit yoghurt", "Dairy & drinks", 14, "g", [["1 pot", 125]]],
+    ["Cheddar cheese", "Dairy & drinks", 0.1, "g", [["1 matchbox piece", 30]]],
+    ["Vanilla ice cream", "Dairy & drinks", 24, "g", [["1 scoop", 60]]],
+    ["Custard, ready made", "Dairy & drinks", 15, "g", [["1 portion", 120]]],
+    ["Orange juice", "Dairy & drinks", 9, "ml", [["1 small glass", 150]]],
+    ["Apple juice", "Dairy & drinks", 10, "ml", [["1 small glass", 150]]],
+    ["Cola, full sugar", "Dairy & drinks", 10.6, "ml", [["1 can", 330]]],
+    ["Lager", "Dairy & drinks", 3, "ml", [["1 pint", 568]]],
+
+    ["Chicken nuggets", "Meals", 16, "g", [["1 nugget", 18]]],
+    ["Fish fingers", "Meals", 17, "g", [["1 fish finger", 28]]],
+    ["Battered fish", "Meals", 9, "g", [["1 fillet", 180]]],
+    ["Pork sausage", "Meals", 8, "g", [["1 sausage", 40]]],
+    ["Sausage roll", "Meals", 25, "g", [["1 sausage roll", 100]]],
+    ["Pizza, cheese and tomato", "Meals", 32, "g", [["1 slice (1/8 of 12 inch)", 70], ["Whole 10 inch pizza", 330]]],
+    ["Beef lasagne", "Meals", 13, "g", [["1 portion", 400]]],
+    ["Tomato soup", "Meals", 7, "g", [["1 bowl", 300]]],
+    ["Chicken, eggs, meat or fish (plain)", "Meals", 0, "g", [["1 portion", 120]]],
+
+    ["Ready salted crisps", "Snacks & sweets", 50, "g", [["1 bag", 25]]],
+    ["Popcorn, salted", "Snacks & sweets", 58, "g", [["1 bag", 30]]],
+    ["Digestive biscuit", "Snacks & sweets", 64, "g", [["1 biscuit", 15]]],
+    ["Chocolate digestive", "Snacks & sweets", 62, "g", [["1 biscuit", 17]]],
+    ["Rich tea biscuit", "Snacks & sweets", 72, "g", [["1 biscuit", 8]]],
+    ["Jaffa cake", "Snacks & sweets", 70, "g", [["1 cake", 12]]],
+    ["Cereal bar", "Snacks & sweets", 65, "g", [["1 bar", 25]]],
+    ["Milk chocolate", "Snacks & sweets", 57, "g", [["1 bar", 45], ["1 square", 6]]],
+    ["Victoria sponge cake", "Snacks & sweets", 55, "g", [["1 slice", 60]]],
+    ["Scone, plain", "Snacks & sweets", 50, "g", [["1 scone", 70]]],
+    ["Jam doughnut", "Snacks & sweets", 49, "g", [["1 doughnut", 75]]],
+    ["Blueberry muffin", "Snacks & sweets", 50, "g", [["1 muffin", 110]]],
+    ["Sugar", "Snacks & sweets", 100, "g", [["1 teaspoon", 4]]],
+    ["Honey", "Snacks & sweets", 76, "g", [["1 teaspoon", 7]]],
+    ["Jam", "Snacks & sweets", 63, "g", [["1 teaspoon", 7], ["1 tablespoon", 15]]],
+    ["Jelly babies", "Snacks & sweets", 78, "g", [["1 sweet", 6]]],
+    ["Glucose tablet", "Snacks & sweets", 93, "g", [["1 tablet", 3]]]
+  ];
+
+  var STORE = "bolusbuddy.v1";
+  var foods = FOODS.map(function (f, i) {
+    return { id: "b" + i, name: f[0], group: f[1], per100: f[2], unit: f[3], portions: f[4] };
+  });
+  var state = { meal: [], custom: [], units: "cp", example: false };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE);
+      if (raw) { var s = JSON.parse(raw); if (s && Array.isArray(s.meal)) { state = Object.assign(state, s); return; } }
+    } catch (e) {}
+    // First run: show a worked example so the total tray makes sense straight away.
+    state.example = true;
+    state.meal = [
+      itemFrom(findByName("Wholemeal bread"), 72, "2 × medium slice", 0, 2),
+      itemFrom(findByName("Banana, peeled"), 100, "1 medium", 0, 1),
+      itemFrom(findByName("Semi-skimmed milk"), 200, "1 glass", 0, 1)
+    ];
+  }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+  function allFoods() { return state.custom.concat(foods); }
+  function findByName(n) { return foods.filter(function (f) { return f.name === n; })[0]; }
+  function findById(id) { return allFoods().filter(function (f) { return f.id === id; })[0]; }
+  function round1(n) { return Math.round(n * 10) / 10; }
+  function fmt(n) { var r = round1(n); return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)); }
+  function carbsFor(food, amount) { return food.per100 * amount / 100; }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
+  function $(id) { return document.getElementById(id); }
+
+  function itemFrom(food, amount, label, pIdx, qty) {
+    return { id: uid(), foodId: food.id, name: food.name, amount: amount, unit: food.unit, label: label || "",
+      pIdx: pIdx == null ? null : pIdx, qty: qty || 1, carbs: carbsFor(food, amount) };
+  }
+
+  // ---------- Catalogue ----------
+  var activeGroup = "All";
+  function groups() {
+    var g = ["All"];
+    if (state.custom.length) g.push("My foods");
+    foods.forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
+    return g;
+  }
+  function renderChips() {
+    $("cats").innerHTML = groups().map(function (g) {
+      return '<button type="button" class="chip" aria-pressed="' + (g === activeGroup) + '" data-g="' + esc(g) + '">' + esc(g) + "</button>";
+    }).join("");
+  }
+  function renderFoods() {
+    var q = $("q").value.trim().toLowerCase();
+    var list = allFoods().filter(function (f) {
+      if (activeGroup !== "All" && f.group !== activeGroup) return false;
+      return !q || f.name.toLowerCase().indexOf(q) >= 0 || f.group.toLowerCase().indexOf(q) >= 0;
+    });
+    var html = "", last = null, showHeads = activeGroup === "All" && !q;
+    list.forEach(function (f) {
+      if (showHeads && f.group !== last) { html += '<li class="cat-head">' + esc(f.group) + "</li>"; last = f.group; }
+      var p = f.portions[0];
+      var sub = p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs" : "Enter the weight";
+      html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
+        '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(f.per100) + " g</b>per 100 " + f.unit + "</span></button></li>";
+    });
+    $("foodList").innerHTML = html;
+    $("noResults").hidden = list.length > 0;
+  }
+
+  // ---------- Meal ----------
+  function total() { return state.meal.reduce(function (s, i) { return s + i.carbs; }, 0); }
+  function renderMeal() {
+    $("mealList").innerHTML = state.meal.map(function (i) {
+      var desc = i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
+      return '<li class="item"><button type="button" class="food" data-item="' + i.id + '"' + (i.foodId ? "" : " disabled") + '><span class="txt"><span class="name">' +
+        esc(i.name) + '</span><span class="sub">' + desc + '</span></span><span class="carbs">' + fmt(i.carbs) + ' g<small>carbs</small></span></button>' +
+        '<button type="button" class="remove" data-remove="' + i.id + '" aria-label="Remove ' + esc(i.name) + '">×</button></li>';
+    }).join("");
+    $("mealEmpty").hidden = state.meal.length > 0;
+    $("exampleBanner").hidden = !state.example;
+    $("mealCount").textContent = state.meal.length;
+    renderTotal();
+  }
+  function renderTotal() {
+    var t = total(), el = $("totalG");
+    el.textContent = fmt(t);
+    el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+    var alt = "";
+    if (state.units === "cp") alt = fmt(t / 10) + " CP (10 g portions)";
+    if (state.units === "ex") alt = fmt(t / 15) + " exchanges (15 g)";
+    $("totalAlt").textContent = alt;
+    $("totalAlt").hidden = !alt;
+  }
+  function clearExampleFlag() { if (state.example) { state.example = false; } }
+
+  // ---------- Views ----------
+  function show(view) {
+    var meal = view === "meal";
+    $("view-foods").hidden = meal; $("view-meal").hidden = !meal;
+    $("tab-foods").setAttribute("aria-selected", String(!meal));
+    $("tab-meal").setAttribute("aria-selected", String(meal));
+    $("trayBtn").textContent = meal ? "Add food" : "View meal";
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- Portion dialog ----------
+  var pFood = null, pItemId = null, pPortion = null, pQtyVal = 1;
+  function openPortion(food, item) {
+    pFood = food; pItemId = item ? item.id : null;
+    $("pGrams").value = "";
+    $("pTitle").textContent = food.name;
+    $("pMeta").textContent = fmt(food.per100) + " g carbs per 100 " + food.unit + " · " + food.group;
+    $("pGramsLbl").textContent = food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
+    $("pPortions").innerHTML = food.portions.map(function (p, i) {
+      return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + " · " + p[1] + " " + food.unit + "</button>";
+    }).join("") + '<button type="button" class="chip" data-p="-1">Weigh it</button>';
+    $("pAdd").textContent = item ? "Update" : "Add to meal";
+    $("pDelete").hidden = !(food.group === "My foods" && !item);
+    if (item) {
+      if (item.pIdx != null && food.portions[item.pIdx]) { selectPortion(item.pIdx, item.qty); }
+      else { selectPortion(-1); $("pGrams").value = fmt(item.amount); }
+    } else {
+      selectPortion(food.portions.length ? 0 : -1, 1);
+    }
+    updatePortion();
+    $("portionDlg").showModal();
+  }
+  function selectPortion(i, qty) {
+    pPortion = i >= 0 ? i : null; pQtyVal = qty || 1;
+    Array.prototype.forEach.call($("pPortions").children, function (b) { b.setAttribute("aria-pressed", String(Number(b.dataset.p) === i)); });
+    $("pQtyField").hidden = pPortion === null;
+    if (pPortion !== null) $("pGrams").value = fmt(pFood.portions[pPortion][1] * pQtyVal);
+    else if (!$("pGrams").value) $("pGrams").value = "";
+  }
+  function updatePortion() {
+    $("pQty").textContent = fmt(pQtyVal);
+    var g = parseFloat($("pGrams").value) || 0;
+    $("pCarbs").textContent = fmt(carbsFor(pFood, g)) + " g";
+  }
+  function portionLabel() {
+    if (pPortion === null) return "";
+    var name = pFood.portions[pPortion][0];
+    if (pQtyVal === 1) return name;
+    return fmt(pQtyVal) + " × " + name.replace(/^1 /, "");
+  }
+
+  // ---------- Events ----------
+  $("tab-foods").addEventListener("click", function () { show("foods"); });
+  $("tab-meal").addEventListener("click", function () { show("meal"); });
+  $("trayBtn").addEventListener("click", function () { show($("view-meal").hidden ? "meal" : "foods"); });
+  $("q").addEventListener("input", renderFoods);
+  $("cats").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-g]"); if (!b) return;
+    activeGroup = b.dataset.g; renderChips(); renderFoods();
+  });
+  $("foodList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-id]"); if (b) openPortion(findById(b.dataset.id));
+  });
+  $("mealList").addEventListener("click", function (e) {
+    var r = e.target.closest("[data-remove]");
+    if (r) { state.meal = state.meal.filter(function (i) { return i.id !== r.dataset.remove; }); clearExampleFlag(); save(); renderMeal(); return; }
+    var b = e.target.closest("[data-item]"); if (!b) return;
+    var item = state.meal.filter(function (i) { return i.id === b.dataset.item; })[0];
+    var food = item && findById(item.foodId);
+    if (food) openPortion(food, item);
+  });
+
+  $("pPortions").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-p]"); if (!b) return;
+    var i = Number(b.dataset.p);
+    if (i < 0) { selectPortion(-1); $("pGrams").focus(); } else selectPortion(i, 1);
+    updatePortion();
+  });
+  $("pMinus").addEventListener("click", function () { if (pPortion === null) return; pQtyVal = Math.max(0.5, pQtyVal - 0.5); selectPortion(pPortion, pQtyVal); updatePortion(); });
+  $("pPlus").addEventListener("click", function () { if (pPortion === null) return; pQtyVal = Math.min(20, pQtyVal + 0.5); selectPortion(pPortion, pQtyVal); updatePortion(); });
+  $("pGrams").addEventListener("input", function () {
+    if (pPortion !== null) { pPortion = null; Array.prototype.forEach.call($("pPortions").children, function (b) { b.setAttribute("aria-pressed", String(b.dataset.p === "-1")); }); $("pQtyField").hidden = true; }
+    updatePortion();
+  });
+  $("pCancel").addEventListener("click", function () { $("portionDlg").close(); });
+  $("portionForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var g = parseFloat($("pGrams").value);
+    if (!(g > 0)) { $("pGrams").focus(); return; }
+    var label = portionLabel();
+    if (pItemId) {
+      state.meal = state.meal.map(function (i) { return i.id === pItemId ? Object.assign(itemFrom(pFood, g, label, pPortion, pQtyVal), { id: i.id }) : i; });
+    } else {
+      state.meal.push(itemFrom(pFood, g, label, pPortion, pQtyVal));
+    }
+    clearExampleFlag(); save(); renderMeal();
+    $("portionDlg").close();
+  });
+  $("pDelete").addEventListener("click", function () {
+    state.custom = state.custom.filter(function (f) { return f.id !== pFood.id; });
+    if (!state.custom.length && activeGroup === "My foods") activeGroup = "All";
+    save(); renderChips(); renderFoods(); $("portionDlg").close();
+  });
+
+  $("addCustomBtn").addEventListener("click", function () { $("customForm").reset(); $("cErr").hidden = true; $("customDlg").showModal(); });
+  $("cCancel").addEventListener("click", function () { $("customDlg").close(); });
+  $("customForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("cName").value.trim(), c = parseFloat($("cCarbs").value), pg = parseFloat($("cPortionG").value);
+    if (!name || !(c >= 0 && c <= 100)) { $("cErr").textContent = "Enter a name and a carb figure between 0 and 100."; $("cErr").hidden = false; return; }
+    var unit = $("cUnit").value;
+    var portions = pg > 0 ? [[$("cPortion").value.trim() || "1 portion", pg]] : [];
+    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions };
+    state.custom.unshift(food); save();
+    activeGroup = "My foods"; $("q").value = ""; renderChips(); renderFoods();
+    $("customDlg").close();
+    openPortion(food);
+  });
+
+  $("quickAddBtn").addEventListener("click", function () { $("quickForm").reset(); $("qErr").hidden = true; $("quickDlg").showModal(); });
+  $("qCancel").addEventListener("click", function () { $("quickDlg").close(); });
+  $("quickForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var c = parseFloat($("qCarbs").value);
+    if (!(c >= 0)) { $("qErr").textContent = "Enter the carbohydrate in grams."; $("qErr").hidden = false; return; }
+    state.meal.push({ id: uid(), foodId: null, name: $("qName").value.trim() || "Label value", amount: null, unit: "g", label: "", carbs: c });
+    clearExampleFlag(); save(); renderMeal(); $("quickDlg").close();
+  });
+
+  var clearArmed = null;
+  $("clearMeal").addEventListener("click", function () {
+    var b = $("clearMeal");
+    if (!clearArmed) {
+      b.textContent = "Tap again to clear";
+      clearArmed = setTimeout(function () { clearArmed = null; b.textContent = "Clear meal"; }, 3000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null; b.textContent = "Clear meal";
+    state.meal = []; clearExampleFlag(); save(); renderMeal();
+  });
+  $("clearExample").addEventListener("click", function () { state.meal = []; state.example = false; save(); renderMeal(); show("foods"); });
+
+  $("unitsBtn").addEventListener("click", function () {
+    $({ cp: "uCp", ex: "uEx", g: "uG" }[state.units]).checked = true;
+    $("unitsDlg").showModal();
+  });
+  $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); });
+  $("unitsForm").addEventListener("submit", function (e) { e.preventDefault(); $("unitsDlg").close(); });
+
+  load(); renderChips(); renderFoods(); renderMeal();
+  if (state.example) show("meal");
+})();
+</script>
+<!-- app-body:end -->
+<script>
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+</script>
+</body>
+</html>
