@@ -12,6 +12,8 @@ BolusBuddy counts carbohydrate only. It does not work out insulin doses.
 - Your own foods, added from a packet label and saved on your phone.
 - Quick entry of a carb figure from a label or menu.
 - Favourite meals: save a meal with its total carbs and add it back in one tap.
+- Barcode scanner: live camera scanning (or a photo of the barcode) looks the product up on Open Food Facts and fills in its carbs for you to check and save. Saved products are found instantly next time.
+- Label reading: inside Claude, a photo of a nutrition panel can be read by Claude to fill in the carbs.
 - Works offline and can be added to the home screen.
 
 Carb figures come from CoFID 2021 and are converted to match UK packet labels. CoFID states carbohydrate as monosaccharide equivalents, so starch is divided by 1.10 and disaccharides by 1.05. Brands and recipes vary, so the packet label is always the better source. See [docs/cofid-check.md](docs/cofid-check.md) for how each common food compares.
@@ -23,7 +25,9 @@ It is a static web app: `index.html`, `foods.js`, `manifest.webmanifest`, `sw.js
 - **On your computer:** run `python3 -m http.server` in this folder and open http://localhost:8000.
 - **On your phone:** host the folder on any static host (GitHub Pages works), open the address in Safari or Chrome, and choose *Add to Home Screen*.
 
-Meals and custom foods are stored in the browser on that device only.
+Meals, favourites and custom foods are stored in the browser on that device only.
+
+The live camera needs the app served over HTTPS from its own address (for example GitHub Pages). Inside a Claude artifact the camera and the Open Food Facts lookup are blocked, so there the scanner reads barcodes from photos and reads nutrition labels with Claude instead.
 
 ## Food data
 

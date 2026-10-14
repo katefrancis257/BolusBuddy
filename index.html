@@ -119,6 +119,13 @@ section { display: flex; flex-direction: column; gap: 12px; }
 .fav-items li + li { border-top: 1px solid var(--line); }
 .fav-items .carbs { font-family: var(--font-data); font-weight: 600; flex: none; }
 .fav-items .sub { display: block; color: var(--muted); font-size: 0.85rem; }
+.primary-wide { width: 100%; border: 0; border-radius: 12px; padding: 13px 14px; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+.scan-actions { display: grid; gap: 10px; }
+.file-btn { display: block; text-align: center; cursor: pointer; }
+.inline { display: flex; gap: 8px; }
+.inline input { flex: 1; min-width: 0; }
+#scanVideo { width: 100%; max-width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: var(--ink); }
+.source { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; margin: 0; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(110px + env(safe-area-inset-bottom, 0px)); z-index: 6;
   width: max-content; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 10px 18px; font-weight: 600; font-size: 0.9rem; max-width: calc(100% - 32px); text-align: center; }
 .banner { background: var(--accent-soft); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
@@ -202,6 +209,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <ul id="foodList" class="list"></ul>
       <p id="moreHint" class="note" hidden></p>
       <div id="noResults" class="empty" hidden><strong>No foods match</strong>Try another word, or add it from the packet label.</div>
+      <button id="scanBtn" class="primary-wide" type="button">Scan a barcode or label</button>
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
       <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
     </section>
@@ -279,6 +287,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <div class="field"><label for="cPortion">Portion name (optional)</label><input id="cPortion" maxlength="30" placeholder="1 wrap"></div>
       <div class="field"><label for="cPortionG">Portion weight</label><input id="cPortionG" type="number" inputmode="decimal" min="0" step="any" placeholder="62"></div>
     </div>
+    <p class="source" id="cSource" hidden></p>
     <p class="err" id="cErr" hidden></p>
     <div class="actions">
       <button type="button" id="cCancel">Cancel</button>
@@ -299,6 +308,27 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <button type="submit" class="primary">Add to meal</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="scanDlg" aria-labelledby="scTitle">
+  <div class="sheet">
+    <h2 id="scTitle">Scan a product</h2>
+    <div id="scanLive" hidden>
+      <video id="scanVideo" playsinline muted></video>
+      <p class="meta">Hold the barcode inside the frame.</p>
+    </div>
+    <div class="scan-actions">
+      <label class="outline file-btn" id="barcodePhotoWrap">Take a photo of the barcode<input type="file" id="barcodePhoto" accept="image/*" capture="environment" hidden></label>
+      <label class="outline file-btn" id="labelPhotoWrap" hidden>Photograph the nutrition label<input type="file" id="labelPhoto" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></label>
+    </div>
+    <div class="field">
+      <label for="barcodeIn">Or type the barcode number</label>
+      <div class="inline"><input id="barcodeIn" inputmode="numeric" maxlength="14" autocomplete="off"><button type="button" id="barcodeGo" class="outline">Look up</button></div>
+    </div>
+    <p id="scanStatus" class="meta" aria-live="polite"></p>
+    <button type="button" id="scanManual" class="outline" hidden>Add it by hand</button>
+    <div class="actions"><button type="button" id="scanClose">Close</button></div>
+  </div>
 </dialog>
 
 <dialog id="saveFavDlg" aria-labelledby="sfTitle">
@@ -653,7 +683,21 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     save(); renderChips(); renderFoods(); $("portionDlg").close();
   });
 
-  $("addCustomBtn").addEventListener("click", function () { $("customForm").reset(); $("cErr").hidden = true; $("customDlg").showModal(); });
+  var cBarcode = "";
+  function openCustom(pre) {
+    pre = pre || {};
+    $("customForm").reset(); $("cErr").hidden = true;
+    cBarcode = pre.barcode || "";
+    if (pre.name) $("cName").value = pre.name;
+    if (pre.carbs != null) $("cCarbs").value = pre.carbs;
+    if (pre.unit) $("cUnit").value = pre.unit;
+    if (pre.portionName) $("cPortion").value = pre.portionName;
+    if (pre.portionG) $("cPortionG").value = pre.portionG;
+    $("cSource").textContent = pre.source || "";
+    $("cSource").hidden = !pre.source;
+    $("customDlg").showModal();
+  }
+  $("addCustomBtn").addEventListener("click", function () { openCustom(); });
   $("cCancel").addEventListener("click", function () { $("customDlg").close(); });
   $("customForm").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -661,7 +705,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     if (!name || !(c >= 0 && c <= 100)) { $("cErr").textContent = "Enter a name and a carb figure between 0 and 100."; $("cErr").hidden = false; return; }
     var unit = $("cUnit").value;
     var portions = pg > 0 ? [[$("cPortion").value.trim() || "1 portion", pg]] : [];
-    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions };
+    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions, barcode: cBarcode };
+    if (cBarcode) state.custom = state.custom.filter(function (f) { return f.barcode !== cBarcode; });
     state.custom.unshift(food); save();
     activeGroup = "My foods"; $("q").value = ""; renderChips(); renderFoods();
     $("customDlg").close();
@@ -697,6 +742,186 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   });
   $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); renderFavs(); });
   $("unitsForm").addEventListener("submit", function (e) { e.preventDefault(); $("unitsDlg").close(); });
+
+  // ---------- Scanning ----------
+  var ZXING_URL = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+  var zxingReady = null, stream = null, liveTimer = null, sampleFn = null, scanBusy = false;
+  function loadZxing() {
+    if (window.ZXing) return Promise.resolve(window.ZXing);
+    if (!zxingReady) {
+      zxingReady = new Promise(function (resolve, reject) {
+        var sc = document.createElement("script");
+        sc.src = ZXING_URL; sc.async = true;
+        sc.onload = function () { window.ZXing ? resolve(window.ZXing) : reject(new Error("no ZXing")); };
+        sc.onerror = function () { zxingReady = null; reject(new Error("load failed")); };
+        document.head.appendChild(sc);
+      });
+    }
+    return zxingReady;
+  }
+  function scanStatus(msg, manual) { $("scanStatus").textContent = msg; $("scanManual").hidden = !manual; }
+
+  // Decode a barcode from a canvas: the browser's own detector where it has one, otherwise ZXing.
+  function decodeCanvas(canvas) {
+    var native = "BarcodeDetector" in window
+      ? new window.BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }).detect(canvas)
+          .then(function (r) { return r.length ? r[0].rawValue : null; }).catch(function () { return null; })
+      : Promise.resolve(null);
+    return native.then(function (code) {
+      if (code) return code;
+      return loadZxing().then(function (Z) {
+        var hints = new Map();
+        hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E]);
+        hints.set(Z.DecodeHintType.TRY_HARDER, true);
+        var bitmap = new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(canvas)));
+        try { return new Z.MultiFormatReader().decode(bitmap, hints).getText(); } catch (e) { return null; }
+      });
+    });
+  }
+  function fileToCanvas(file, maxSide) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); resolve(c);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("bad image")); };
+      img.src = url;
+    });
+  }
+
+  function startLive() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false }).then(function (s) {
+      if (!$("scanDlg").open) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
+      stream = s;
+      var v = $("scanVideo"); v.srcObject = s; v.play().catch(function () {});
+      $("scanLive").hidden = false;
+      var c = document.createElement("canvas");
+      liveTimer = setInterval(function () {
+        if (scanBusy || !v.videoWidth) return;
+        scanBusy = true;
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext("2d").drawImage(v, 0, 0);
+        decodeCanvas(c).then(function (code) { scanBusy = false; if (code && stream) { stopLive(); lookup(code); } })
+          .catch(function () { scanBusy = false; });
+      }, 400);
+    }).catch(function () { /* No live camera here: the photo button does the job. */ });
+  }
+  function stopLive() {
+    clearInterval(liveTimer); liveTimer = null;
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    stream = null; $("scanLive").hidden = true;
+  }
+
+  function lookup(code) {
+    code = String(code).replace(/\D/g, "");
+    if (code.length < 8) { scanStatus("Barcodes are 8 to 14 digits. Check the number and try again.", false); return; }
+    $("barcodeIn").value = code;
+    var mine = state.custom.filter(function (f) { return f.barcode === code; })[0];
+    if (mine) { closeScan(); openPortion(mine); return; }
+    scanStatus("Looking up " + code + "…", false);
+    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 10000);
+    fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,nutriments,serving_size,serving_quantity", { signal: ctl.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        clearTimeout(t);
+        var p = d && d.status === 1 ? d.product : null;
+        var c100 = p && p.nutriments ? Number(p.nutriments.carbohydrates_100g) : NaN;
+        if (!p || !isFinite(c100)) {
+          scanStatus("Barcode " + code + " isn't in the Open Food Facts database with a carb figure." + (sampleFn ? " Photograph the nutrition label, or add it by hand." : " Add it by hand from the label."), true);
+          return;
+        }
+        var name = [p.brands ? String(p.brands).split(",")[0].trim() : "", p.product_name || ""].filter(Boolean).join(" ") || "Scanned product";
+        closeScan();
+        openCustom({
+          barcode: code, name: name.slice(0, 60), carbs: round1(c100),
+          portionName: p.serving_size ? String(p.serving_size).slice(0, 30) : "",
+          portionG: Number(p.serving_quantity) > 0 ? round1(Number(p.serving_quantity)) : "",
+          source: "Found on Open Food Facts for barcode " + code + ". These figures are added by the public, so check them against the packet before you save."
+        });
+      })
+      .catch(function () {
+        clearTimeout(t);
+        scanStatus("Barcode " + code + " read, but the product database can't be reached from here." + (sampleFn ? " Photograph the nutrition label instead, or add it by hand." : " Add it by hand from the label."), true);
+      });
+  }
+
+  function readLabel(file) {
+    if (!sampleFn) return;
+    scanStatus("Reading the label. This can take up to a minute…", false);
+    var prompt = "This photo shows a food or drink packet, usually its nutrition information panel. " +
+      "Read the carbohydrate figure exactly as printed. Use the per 100 g or per 100 ml column. " +
+      "If only a per-serving figure is printed, give it as carbs_per_serving and set carbs_per_100 to null. " +
+      'Reply with only JSON: {"product_name": string or null, "carbs_per_100": number or null, "unit": "g" or "ml", ' +
+      '"serving_name": string or null, "serving_size": number or null, "carbs_per_serving": number or null, "readable": true or false}. ' +
+      "Use null for anything you cannot read clearly. Never estimate or guess a number.";
+    sampleFn.json(prompt, { images: [file], cache: false }).then(function (r) {
+      var c = r && typeof r.carbs_per_100 === "number" ? r.carbs_per_100 : null;
+      var cs = r && typeof r.carbs_per_serving === "number" ? r.carbs_per_serving : null;
+      var size = r && typeof r.serving_size === "number" ? r.serving_size : null;
+      if (c == null && cs != null && size) c = round1(cs * 100 / size);
+      if (c == null) { scanStatus("I couldn't read a carbohydrate figure from that photo. Try again with the panel flat, close up and in good light.", true); return; }
+      var code = $("barcodeIn").value.replace(/\D/g, "");
+      closeScan();
+      openCustom({
+        barcode: code.length >= 8 ? code : "", name: r.product_name ? String(r.product_name).slice(0, 60) : "",
+        carbs: c, unit: r.unit === "ml" ? "ml" : "g",
+        portionName: r.serving_name ? String(r.serving_name).slice(0, 30) : "", portionG: size || "",
+        source: "Read from your photo by Claude. Check every figure against the label before you save."
+      });
+    }).catch(function (e) {
+      var msg = {
+        not_granted: "Label reading needs your permission to use Claude. Add the figures by hand instead.",
+        rate_limited: "Label reading is busy right now. Try again shortly, or add it by hand.",
+        image_rejected: "That photo couldn't be used. Try a JPEG or PNG photo.",
+        invalid_json: "I couldn't read that label clearly. Try another photo."
+      }[e && e.code] || "Label reading didn't work this time. Try again, or add it by hand.";
+      if (e && (e.code === "not_granted" || e.code === "sampling_disabled")) { sampleFn = null; $("labelPhotoWrap").hidden = true; }
+      scanStatus(msg, true);
+    });
+  }
+
+  function openScan() {
+    $("barcodeIn").value = ""; scanStatus("", false);
+    $("scanDlg").showModal();
+    startLive();
+  }
+  function closeScan() { stopLive(); if ($("scanDlg").open) $("scanDlg").close(); }
+  $("scanBtn").addEventListener("click", openScan);
+  $("scanClose").addEventListener("click", closeScan);
+  $("scanDlg").addEventListener("close", stopLive);
+  $("barcodeGo").addEventListener("click", function () { lookup($("barcodeIn").value); });
+  $("barcodeIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); lookup($("barcodeIn").value); } });
+  $("scanManual").addEventListener("click", function () {
+    var code = $("barcodeIn").value.replace(/\D/g, "");
+    closeScan(); openCustom({ barcode: code.length >= 8 ? code : "" });
+  });
+  $("barcodePhoto").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    scanStatus("Reading the barcode…", false);
+    fileToCanvas(f, 1600).then(decodeCanvas).then(function (code) {
+      if (code) lookup(code);
+      else scanStatus("No barcode found in that photo. Fill the frame with the barcode, keep it flat, and try again.", false);
+    }).catch(function () { scanStatus("That photo couldn't be opened. Try again.", false); });
+  });
+  $("labelPhoto").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = "";
+    if (f) readLabel(f);
+  });
+  // Label reading uses Claude, which only exists when the app runs inside Claude.
+  if (window.claude && window.claude.use) {
+    window.claude.use("sample").then(function (s) {
+      if (!s) return;
+      return s.limits().then(function (lim) {
+        if (lim && lim.images) { sampleFn = s; $("labelPhotoWrap").hidden = false; }
+      });
+    }).catch(function () {});
+  }
 
   load(); renderChips(); renderFoods(); renderMeal(); renderFavs();
   if (state.example) show("meal");
