@@ -189,9 +189,10 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <div class="search"><input id="q" type="search" placeholder="Search foods, for example bagel" autocomplete="off" aria-label="Search foods"></div>
       <div id="cats" class="chips" aria-label="Food groups"></div>
       <ul id="foodList" class="list"></ul>
+      <p id="moreHint" class="note" hidden></p>
       <div id="noResults" class="empty" hidden><strong>No foods match</strong>Try another word, or add it from the packet label.</div>
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
-      <p class="note">Figures are typical UK values for carbohydrate per 100 g (or 100 ml). Brands and recipes vary, so check the packet when you have it.</p>
+      <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
     </section>
 
     <section id="view-meal" role="tabpanel" aria-labelledby="tab-meal" hidden>
@@ -292,132 +293,26 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   </form>
 </dialog>
 
+<script src="foods.js"></script>
 <script>
 (function () {
   "use strict";
 
-  // [name, group, carbs per 100 g or ml, unit, [[portion label, weight], ...]]
-  // Typical UK values for available carbohydrate. Approximate; brands vary.
-  var FOODS = [
-    ["White bread", "Bread", 46, "g", [["1 medium slice", 36], ["1 thick slice", 44]]],
-    ["Wholemeal bread", "Bread", 42, "g", [["1 medium slice", 36], ["1 thick slice", 44]]],
-    ["Seeded or granary bread", "Bread", 43, "g", [["1 slice", 44]]],
-    ["White bread roll", "Bread", 50, "g", [["1 roll", 60]]],
-    ["Burger bun", "Bread", 47, "g", [["1 bun", 60]]],
-    ["Bagel, plain", "Bread", 50, "g", [["1 bagel", 85]]],
-    ["Pitta bread, white", "Bread", 55, "g", [["1 pitta", 60], ["1 mini pitta", 30]]],
-    ["Tortilla wrap, plain", "Bread", 50, "g", [["1 wrap", 62], ["1 mini wrap", 35]]],
-    ["Naan bread, plain", "Bread", 50, "g", [["1 large naan", 160], ["1 mini naan", 65]]],
-    ["Crumpet", "Bread", 38, "g", [["1 crumpet", 55]]],
-    ["English muffin", "Bread", 44, "g", [["1 muffin", 65]]],
-    ["Croissant", "Bread", 43, "g", [["1 croissant", 60]]],
-    ["Crispbread (rye)", "Bread", 66, "g", [["1 crispbread", 10]]],
-    ["Rice cake", "Bread", 80, "g", [["1 rice cake", 8]]],
-
-    ["Porridge oats (dry)", "Cereal", 60, "g", [["1 sachet or small bowl", 40], ["1 tablespoon", 10]]],
-    ["Wheat biscuits (e.g. Weetabix)", "Cereal", 69, "g", [["1 biscuit", 19]]],
-    ["Shredded wheat", "Cereal", 68, "g", [["1 biscuit", 22]]],
-    ["Cornflakes", "Cereal", 84, "g", [["1 bowl", 30]]],
-    ["Crisped rice cereal", "Cereal", 87, "g", [["1 bowl", 30]]],
-    ["Bran flakes", "Cereal", 66, "g", [["1 bowl", 30]]],
-    ["Muesli", "Cereal", 66, "g", [["1 bowl", 45]]],
-    ["Granola", "Cereal", 60, "g", [["1 bowl", 45]]],
-
-    ["White rice, boiled", "Rice & pasta", 31, "g", [["1 portion", 180], ["1 tablespoon", 25]]],
-    ["Brown rice, boiled", "Rice & pasta", 32, "g", [["1 portion", 180], ["1 tablespoon", 25]]],
-    ["Rice, uncooked", "Rice & pasta", 79, "g", [["1 portion", 75]]],
-    ["Pasta, boiled", "Rice & pasta", 31, "g", [["1 portion", 230], ["1 small portion", 150]]],
-    ["Wholewheat pasta, boiled", "Rice & pasta", 27, "g", [["1 portion", 230]]],
-    ["Pasta, uncooked", "Rice & pasta", 72, "g", [["1 portion", 75]]],
-    ["Egg noodles, boiled", "Rice & pasta", 25, "g", [["1 portion", 200]]],
-    ["Rice noodles, boiled", "Rice & pasta", 24, "g", [["1 portion", 200]]],
-    ["Couscous, cooked", "Rice & pasta", 23, "g", [["1 portion", 150]]],
-    ["Quinoa, cooked", "Rice & pasta", 19, "g", [["1 portion", 150]]],
-
-    ["Potatoes, boiled", "Potatoes", 17, "g", [["1 portion", 175], ["1 egg-sized potato", 50]]],
-    ["Mashed potato", "Potatoes", 15, "g", [["1 portion", 180], ["1 scoop", 60]]],
-    ["Jacket potato, with skin", "Potatoes", 22, "g", [["1 medium", 180], ["1 large", 250]]],
-    ["Roast potatoes", "Potatoes", 26, "g", [["1 roast potato", 60]]],
-    ["Oven chips", "Potatoes", 30, "g", [["1 portion", 165]]],
-    ["Chip shop chips", "Potatoes", 30, "g", [["1 portion", 200]]],
-    ["Sweet potato, baked", "Potatoes", 21, "g", [["1 medium", 130]]],
-
-    ["Apple", "Fruit", 12, "g", [["1 medium", 150]]],
-    ["Banana, peeled", "Fruit", 20, "g", [["1 medium", 100], ["1 large", 130]]],
-    ["Orange, peeled", "Fruit", 8.5, "g", [["1 medium", 160]]],
-    ["Satsuma or clementine, peeled", "Fruit", 8, "g", [["1 fruit", 70]]],
-    ["Pear", "Fruit", 10, "g", [["1 medium", 160]]],
-    ["Grapes", "Fruit", 15, "g", [["1 handful", 80]]],
-    ["Strawberries", "Fruit", 6, "g", [["1 handful", 80]]],
-    ["Blueberries", "Fruit", 10, "g", [["1 handful", 80]]],
-    ["Kiwi fruit", "Fruit", 10, "g", [["1 fruit", 75]]],
-    ["Mango", "Fruit", 14, "g", [["1 portion", 80]]],
-    ["Pineapple", "Fruit", 10, "g", [["1 portion", 80]]],
-    ["Melon", "Fruit", 6, "g", [["1 slice", 150]]],
-    ["Watermelon", "Fruit", 7, "g", [["1 slice", 200]]],
-    ["Raisins", "Fruit", 69, "g", [["1 mini box", 14], ["1 tablespoon", 25]]],
-    ["Dates, dried", "Fruit", 68, "g", [["1 date", 8]]],
-
-    ["Peas", "Veg & beans", 10, "g", [["1 portion", 80]]],
-    ["Sweetcorn", "Veg & beans", 15, "g", [["1 portion", 80]]],
-    ["Carrots, boiled", "Veg & beans", 4.5, "g", [["1 portion", 80]]],
-    ["Parsnips, roasted", "Veg & beans", 13, "g", [["1 portion", 80]]],
-    ["Butternut squash", "Veg & beans", 7, "g", [["1 portion", 80]]],
-    ["Broccoli", "Veg & beans", 2, "g", [["1 portion", 80]]],
-    ["Tomato", "Veg & beans", 3, "g", [["1 medium", 85]]],
-    ["Salad leaves", "Veg & beans", 1.5, "g", [["1 bowl", 50]]],
-    ["Baked beans", "Veg & beans", 13, "g", [["Half a can", 207], ["1 small can", 150]]],
-    ["Chickpeas, canned", "Veg & beans", 15, "g", [["1 portion", 80]]],
-    ["Kidney beans, canned", "Veg & beans", 14, "g", [["1 portion", 80]]],
-    ["Lentils, boiled", "Veg & beans", 17, "g", [["1 portion", 80]]],
-
-    ["Semi-skimmed milk", "Dairy & drinks", 4.8, "ml", [["1 glass", 200], ["In tea or coffee", 30]]],
-    ["Whole milk", "Dairy & drinks", 4.7, "ml", [["1 glass", 200]]],
-    ["Oat drink", "Dairy & drinks", 6.5, "ml", [["1 glass", 200]]],
-    ["Natural yoghurt", "Dairy & drinks", 6, "g", [["1 pot", 125]]],
-    ["Greek-style yoghurt", "Dairy & drinks", 4, "g", [["1 pot", 125]]],
-    ["Fruit yoghurt", "Dairy & drinks", 14, "g", [["1 pot", 125]]],
-    ["Cheddar cheese", "Dairy & drinks", 0.1, "g", [["1 matchbox piece", 30]]],
-    ["Vanilla ice cream", "Dairy & drinks", 24, "g", [["1 scoop", 60]]],
-    ["Custard, ready made", "Dairy & drinks", 15, "g", [["1 portion", 120]]],
-    ["Orange juice", "Dairy & drinks", 9, "ml", [["1 small glass", 150]]],
-    ["Apple juice", "Dairy & drinks", 10, "ml", [["1 small glass", 150]]],
-    ["Cola, full sugar", "Dairy & drinks", 10.6, "ml", [["1 can", 330]]],
-    ["Lager", "Dairy & drinks", 3, "ml", [["1 pint", 568]]],
-
-    ["Chicken nuggets", "Meals", 16, "g", [["1 nugget", 18]]],
-    ["Fish fingers", "Meals", 17, "g", [["1 fish finger", 28]]],
-    ["Battered fish", "Meals", 9, "g", [["1 fillet", 180]]],
-    ["Pork sausage", "Meals", 8, "g", [["1 sausage", 40]]],
-    ["Sausage roll", "Meals", 25, "g", [["1 sausage roll", 100]]],
-    ["Pizza, cheese and tomato", "Meals", 32, "g", [["1 slice (1/8 of 12 inch)", 70], ["Whole 10 inch pizza", 330]]],
-    ["Beef lasagne", "Meals", 13, "g", [["1 portion", 400]]],
-    ["Tomato soup", "Meals", 7, "g", [["1 bowl", 300]]],
-    ["Chicken, eggs, meat or fish (plain)", "Meals", 0, "g", [["1 portion", 120]]],
-
-    ["Ready salted crisps", "Snacks & sweets", 50, "g", [["1 bag", 25]]],
-    ["Popcorn, salted", "Snacks & sweets", 58, "g", [["1 bag", 30]]],
-    ["Digestive biscuit", "Snacks & sweets", 64, "g", [["1 biscuit", 15]]],
-    ["Chocolate digestive", "Snacks & sweets", 62, "g", [["1 biscuit", 17]]],
-    ["Rich tea biscuit", "Snacks & sweets", 72, "g", [["1 biscuit", 8]]],
-    ["Jaffa cake", "Snacks & sweets", 70, "g", [["1 cake", 12]]],
-    ["Cereal bar", "Snacks & sweets", 65, "g", [["1 bar", 25]]],
-    ["Milk chocolate", "Snacks & sweets", 57, "g", [["1 bar", 45], ["1 square", 6]]],
-    ["Victoria sponge cake", "Snacks & sweets", 55, "g", [["1 slice", 60]]],
-    ["Scone, plain", "Snacks & sweets", 50, "g", [["1 scone", 70]]],
-    ["Jam doughnut", "Snacks & sweets", 49, "g", [["1 doughnut", 75]]],
-    ["Blueberry muffin", "Snacks & sweets", 50, "g", [["1 muffin", 110]]],
-    ["Sugar", "Snacks & sweets", 100, "g", [["1 teaspoon", 4]]],
-    ["Honey", "Snacks & sweets", 76, "g", [["1 teaspoon", 7]]],
-    ["Jam", "Snacks & sweets", 63, "g", [["1 teaspoon", 7], ["1 tablespoon", 15]]],
-    ["Jelly babies", "Snacks & sweets", 78, "g", [["1 sweet", 6]]],
-    ["Glucose tablet", "Snacks & sweets", 93, "g", [["1 tablet", 3]]]
-  ];
+  // Food data comes from foods.js, generated by tools/build_foods.py from CoFID 2021.
+  var DATA = window.BOLUS_FOODS || { groups: [], curated: [], cofid: [] };
+  var MAX_ROWS = 120;
 
   var STORE = "bolusbuddy.v1";
-  var foods = FOODS.map(function (f, i) {
-    return { id: "b" + i, name: f[0], group: f[1], per100: f[2], unit: f[3], portions: f[4] };
+  var foods = DATA.curated.map(function (f, i) {
+    return { id: "b" + i, name: f[0], group: f[1], per100: f[2], unit: f[3], portions: f[4], code: f[5], common: true };
   });
+  var curatedCodes = {};
+  foods.forEach(function (f) { if (f.code) curatedCodes[f.code] = true; });
+  var cofid = DATA.cofid.filter(function (f) { return !curatedCodes[f[0]]; }).map(function (f) {
+    return { id: "f" + f[0], name: f[1], group: DATA.groups[f[2]], per100: f[3], unit: "g", portions: [], code: f[0], old: !!(f[4] & 1), est: !!(f[4] & 2) };
+  });
+  var byId = {};
+  foods.concat(cofid).forEach(function (f) { byId[f.id] = f; });
   var state = { meal: [], custom: [], units: "cp", example: false };
 
   function load() {
@@ -435,9 +330,9 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
-  function allFoods() { return state.custom.concat(foods); }
+  function allFoods() { return state.custom.concat(foods, cofid); }
   function findByName(n) { return foods.filter(function (f) { return f.name === n; })[0]; }
-  function findById(id) { return allFoods().filter(function (f) { return f.id === id; })[0]; }
+  function findById(id) { return byId[id] || state.custom.filter(function (f) { return f.id === id; })[0]; }
   function round1(n) { return Math.round(n * 10) / 10; }
   function fmt(n) { var r = round1(n); return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)); }
   function carbsFor(food, amount) { return food.per100 * amount / 100; }
@@ -455,7 +350,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   function groups() {
     var g = ["All"];
     if (state.custom.length) g.push("My foods");
-    foods.forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
+    foods.concat(cofid).forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
     return g;
   }
   function renderChips() {
@@ -465,20 +360,38 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   }
   function renderFoods() {
     var q = $("q").value.trim().toLowerCase();
-    var list = allFoods().filter(function (f) {
+    var terms = q.split(/\s+/).filter(Boolean);
+    // With no search and no group picked, show the common foods; otherwise search everything.
+    var pool = (activeGroup === "All" && !q) ? state.custom.concat(foods) : allFoods();
+    var list = pool.filter(function (f) {
       if (activeGroup !== "All" && f.group !== activeGroup) return false;
-      return !q || f.name.toLowerCase().indexOf(q) >= 0 || f.group.toLowerCase().indexOf(q) >= 0;
+      var hay = f.name.toLowerCase();
+      return terms.every(function (t) { return hay.indexOf(t) >= 0; });
     });
+    if (terms.length) {
+      list.sort(function (a, b) {
+        var ra = (a.common || a.group === "My foods" ? 0 : 2) + (a.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
+        var rb = (b.common || b.group === "My foods" ? 0 : 2) + (b.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
+        return ra - rb || a.name.length - b.name.length;
+      });
+    }
+    var found = list.length;
+    list = list.slice(0, MAX_ROWS);
     var html = "", last = null, showHeads = activeGroup === "All" && !q;
     list.forEach(function (f) {
       if (showHeads && f.group !== last) { html += '<li class="cat-head">' + esc(f.group) + "</li>"; last = f.group; }
       var p = f.portions[0];
-      var sub = p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs" : "Enter the weight";
+      var sub = p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs"
+        : (f.code ? "CoFID " + esc(f.code) + (f.old ? " · older data" : "") + (f.est ? " · estimated" : "") + " · weigh it" : "Enter the weight");
       html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
         '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(f.per100) + " g</b>per 100 " + f.unit + "</span></button></li>";
     });
     $("foodList").innerHTML = html;
-    $("noResults").hidden = list.length > 0;
+    $("noResults").hidden = found > 0;
+    $("moreHint").hidden = !(showHeads || found > MAX_ROWS);
+    $("moreHint").textContent = showHeads
+      ? "Showing common foods. Search or pick a group to see all " + (foods.length + cofid.length).toLocaleString("en-GB") + " foods."
+      : "Showing " + MAX_ROWS + " of " + found.toLocaleString("en-GB") + " matches. Add another word to narrow the list.";
   }
 
   // ---------- Meal ----------
@@ -523,7 +436,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     pFood = food; pItemId = item ? item.id : null;
     $("pGrams").value = "";
     $("pTitle").textContent = food.name;
-    $("pMeta").textContent = fmt(food.per100) + " g carbs per 100 " + food.unit + " · " + food.group;
+    $("pMeta").textContent = fmt(food.per100) + " g carbs per 100 " + food.unit + " · " + food.group + (food.code ? " · CoFID " + food.code : "");
     $("pGramsLbl").textContent = food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
     $("pPortions").innerHTML = food.portions.map(function (p, i) {
       return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + " · " + p[1] + " " + food.unit + "</button>";
