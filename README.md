@@ -13,7 +13,7 @@ BolusBuddy counts carbohydrate only. It does not work out insulin doses.
 - Quick entry of a carb figure from a label or menu.
 - Favourite meals: save a meal with its total carbs and add it back in one tap.
 - Barcode scanner: live camera scanning (or a photo of the barcode) looks the product up on Open Food Facts and fills in its carbs for you to check and save. Saved products are found instantly next time.
-- Branded products: search Open Food Facts by name (for example "Hovis wholemeal") and save the product you pick to My foods.
+- Branded and supermarket own-brand products: search Open Food Facts by name (for example "Hovis wholemeal"), optionally narrowed to a shop such as Tesco or Aldi, and save the product you pick to My foods.
 - Label reading: inside Claude, a photo of a nutrition panel can be read by Claude to fill in the carbs.
 - Works offline and can be added to the home screen.
 

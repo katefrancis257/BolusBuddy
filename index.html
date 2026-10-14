@@ -120,6 +120,7 @@ section { display: flex; flex-direction: column; gap: 12px; }
 .fav-items .carbs { font-family: var(--font-data); font-weight: 600; flex: none; }
 .fav-items .sub { display: block; color: var(--muted); font-size: 0.85rem; }
 .primary-wide { width: 100%; border: 0; border-radius: 12px; padding: 13px 14px; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+.brand-box { display: flex; flex-direction: column; gap: 10px; }
 .scan-actions { display: grid; gap: 10px; }
 .file-btn { display: block; text-align: center; cursor: pointer; }
 .inline { display: flex; gap: 8px; }
@@ -211,7 +212,9 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <ul id="foodList" class="list"></ul>
       <p id="moreHint" class="note" hidden></p>
       <div id="noResults" class="empty" hidden><strong>Nothing in the food list matches</strong>Try another word, search branded products, or scan the barcode.</div>
-      <div id="brandBox" hidden>
+      <div id="brandBox" class="brand-box" hidden>
+        <p class="meta" style="margin:0">Branded and supermarket own-brand products. Pick a shop to narrow the search.</p>
+        <div id="shops" class="chips" aria-label="Supermarket"></div>
         <button id="brandBtn" class="outline wide" type="button">Search branded products</button>
         <p id="brandStatus" class="meta" aria-live="polite"></p>
         <ul id="brandList" class="list"></ul>
@@ -750,7 +753,20 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   $("unitsForm").addEventListener("submit", function (e) { e.preventDefault(); $("unitsDlg").close(); });
 
   // ---------- Branded products (Open Food Facts) ----------
-  var brandCache = {}, brandShown = [], brandCtl = null;
+  var brandCache = {}, brandShown = [], brandCtl = null, shop = "";
+  // Own-brand ranges are found by adding the shop's name to the search words.
+  var SHOPS = [["", "Any brand"], ["tesco", "Tesco"], ["sainsbury's", "Sainsbury's"], ["asda", "Asda"], ["morrisons", "Morrisons"],
+    ["aldi", "Aldi"], ["lidl", "Lidl"], ["m&s", "M&S"], ["waitrose", "Waitrose"], ["co-op", "Co-op"], ["iceland", "Iceland"]];
+  function brandQuery() { var q = $("q").value.trim(); return shop ? shop + " " + q : q; }
+  function renderShops() {
+    $("shops").innerHTML = SHOPS.map(function (x) {
+      return '<button type="button" class="chip" aria-pressed="' + (x[0] === shop) + '" data-shop="' + esc(x[0]) + '">' + esc(x[1]) + "</button>";
+    }).join("");
+  }
+  $("shops").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-shop]"); if (!b) return;
+    shop = b.dataset.shop; renderShops(); renderBrandBox();
+  });
   function offFood(p) {
     var c100 = p && p.nutriments ? Number(p.nutriments.carbohydrates_100g) : NaN;
     if (!p || !p.product_name || !isFinite(c100)) return null;
@@ -768,8 +784,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     };
   }
   function renderBrandBox() {
-    var q = $("q").value.trim();
-    $("brandBox").hidden = q.length < 3;
+    var q = brandQuery();
+    $("brandBox").hidden = $("q").value.trim().length < 3;
     $("brandBtn").textContent = 'Search branded products for "' + q + '"';
     if (brandCache[q.toLowerCase()]) showBrands(brandCache[q.toLowerCase()], q);
     else { $("brandList").innerHTML = ""; $("brandStatus").textContent = ""; brandShown = []; }
@@ -786,8 +802,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     }).join("");
   }
   function searchBrands() {
-    var q = $("q").value.trim();
-    if (q.length < 3) return;
+    if ($("q").value.trim().length < 3) return;
+    var q = brandQuery();
     if (brandCtl) brandCtl.abort();
     var ctl = brandCtl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 15000);
     $("brandBtn").disabled = true;
@@ -806,7 +822,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
         });
         list = list.slice(0, 25);
         brandCache[q.toLowerCase()] = list;
-        if ($("q").value.trim() === q) showBrands(list, q);
+        if (brandQuery() === q) showBrands(list, q);
       })
       .catch(function (e) {
         if (ctl.signal.aborted && brandCtl !== ctl) return;
@@ -1006,6 +1022,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     }).catch(function () {});
   }
 
+  renderShops();
   load(); renderChips(); renderFoods(); renderMeal(); renderFavs();
   if (state.example) show("meal");
 })();
