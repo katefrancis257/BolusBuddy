@@ -68,5 +68,16 @@
    "fiveguys",
    "5 guys"
   ]
+ },
+ {
+  "file": "dominos.tsv",
+  "chain": "Domino's",
+  "source": "Domino's Nutrition Information Guides (Pizzas; Sides & Desserts)",
+  "url": "https://dominos.a.bigcontent.io/v1/static/nutrition_sides-and-desserts",
+  "date": "7 September 2026",
+  "aliases": [
+   "dominos",
+   "domino"
+  ]
  }
 ]
