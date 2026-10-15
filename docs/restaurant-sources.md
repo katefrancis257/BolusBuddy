@@ -9,6 +9,8 @@ Every figure is carbohydrate per serving, copied from the chain's own published 
 | Caffè Nero | 168 | [UK menu pages](https://www.caffenero.com/uk/menu) | No date shown; read 14 October 2026 |
 | Costa | 51 | [UK menu item pages](https://www.costa.co.uk/menu) | No date shown; read 14 October 2026 |
 | KFC | 120 | [Allergen & Nutrition Information (PDF)](https://brand-uk.assets.kfc.co.uk/nutrition-allergens.pdf) | September 2026 |
+| Greggs | 269 | [Nutritional Information (PDF)](https://a.storyblok.com/f/94904/x/7dd8489dab/nutritional-information.pdf) | September 2026 |
+| Five Guys | 96 | [UK Nutrition & Allergen Guide (PDF)](https://www.fiveguys.co.uk/wp-content/uploads/sites/30/2026/10/FGUK_FOH_allergen_ingredient_nutrition_MM_shake_DIGITAL_20261013.pdf) | October 2026 |
 | Nando's | 0 | nandos.co.uk shows calories only, no carbs | Not added |
 | Starbucks | 0 | [Autumn 2026 guides](https://www.starbucks.co.uk/nutrition-allergens) block automated reading | Not added |
 
@@ -19,3 +21,5 @@ Every figure is carbohydrate per serving, copied from the chain's own published 
 - **Caffè Nero:** semi-skimmed is taken as the default milk, and oat rows are kept as well. Northern Ireland-only items are excluded. Three rows that look wrong on the site have been left out: Matcha Latte Regular semi-skimmed (11.1 g), oat Banoffee Matcha Latte (26.3 g), and the NI sausage roll (2.7 g). Iced Brown Sugar Oat Latte is left out because it could not be read.
 - **Costa:** each drink page gives one serving only, so there are no Small/Medium/Large or oat options. In-store and take-out servings are listed separately where they differ. Breakfast items and pastries could not be found on costa.co.uk.
 - **KFC:** Popcorn Chicken is left out because the guide prints the same number for fat, carbs and protein in every size. The iced caramel and tiramisu lattes are left out because the dairy and Oatly figures look swapped. Cheese Slice is printed as under 0.5 g and is stored as 0.5 g.
+- **Greggs:** the orange juice rows are left out because the printed portion (150 ml) does not match the bottle size. Items marked (HS) are sold in hospital shops only. The guide has no branded soft drinks.
+- **Five Guys:** five rows are left out because they contradict themselves: Little Bacon Burger (printed as 367 g), both M&Ms mix-ins (sugars higher than carbs), Americano White and bulk peanuts. The UK guide has no soft drinks.

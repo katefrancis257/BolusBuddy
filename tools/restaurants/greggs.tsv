@@ -1,0 +1,270 @@
+section	name	carbs_g
+Savoury Bakes	Sausage Roll	24
+Savoury Bakes	Sausage Roll 4 Pack	95
+Savoury Bakes	6 Mini Sausage Rolls	41
+Savoury Bakes	Vegan Roll Pork-Free	21
+Savoury Bakes	Steak Bake	29
+Savoury Bakes	Chicken Bake	30
+Savoury Bakes	Vegetable Bake	33
+Savoury Bakes	Cheese & Onion Bake	33
+Savoury Bakes	Corned Beef Bake	32
+Savoury Bakes	Steak & Stilton Bake	30
+Savoury Bakes	Sausage, Bean & Cheese Melt	37
+Savoury Bakes	Savoury Mince Pie	61
+Savoury Bakes	Scotch Pie	35
+Savoury Bakes	Chicken Roll	25
+Savoury Bakes	Bacon and Cheese Wrap	25
+Breakfast	All Butter Croissant	35
+Breakfast	Pain au Chocolat	35
+Breakfast	Bacon Breakfast Roll	33
+Breakfast	Sausage Breakfast Roll	42
+Breakfast	Bacon and Sausage Breakfast Roll	39
+Breakfast	Omelette Breakfast Roll	35
+Breakfast	Bacon & Omelette Breakfast Roll	34
+Breakfast	Sausage and Omelette Breakfast Roll	39
+Breakfast	Lorne Breakfast Roll	42
+Breakfast	Bacon and Lorne Breakfast Roll	43
+Breakfast	Lorne & Omelette Breakfast Roll	44
+Breakfast	Bacon Breakfast Baguette	56
+Breakfast	Sausage Breakfast Baguette	67
+Breakfast	Bacon & Sausage Breakfast Baguette	63
+Breakfast	Omelette Breakfast Baguette	58
+Breakfast	Bacon and Omelette Breakfast Baguette	58
+Breakfast	Sausage and Omelette Breakfast Baguette	65
+Breakfast	Lorne Breakfast Baguette	75
+Breakfast	Bacon & Lorne Breakfast Baguette	66
+Breakfast	Lorne & Omelette Breakfast Baguette	70
+Breakfast	Breakfast Box	6.3
+Breakfast	Hash Browns	22
+Breakfast	Apple & Cinnamon Flavour Porridge	37
+Breakfast	Golden Syrup Flavour Porridge	43
+Breakfast	Simply Creamy Porridge	43
+Breakfast	Fat Free Greek Style Yoghurt with Strawberry Compote	20
+Breakfast	Free Range Egg Pot	1.3
+Breakfast	Extra Bacon	0
+Breakfast	Extra Breakfast Sausage	2.6
+Breakfast	Extra Lorne Sausage	9.8
+Breakfast	Extra Omelette with Cheese	0.9
+Sandwiches	BLT Sandwich	45
+Sandwiches	Cheese & Pickle Sandwich	46
+Sandwiches	Cheese & Tomato Sandwich	42
+Sandwiches	Cheese Sandwich	36
+Sandwiches	Ham Sandwich	37
+Sandwiches	Egg Mayonnaise & Tomato Sandwich	44
+Sandwiches	Egg Mayonnaise Sandwich	39
+Sandwiches	Free Range Egg Mayonnaise Sandwich	44
+Sandwiches	Free Range Egg Salad (Hospital Shop)	44
+Sandwiches	Egg & Tomato Roll (Hospital Shop)	41
+Sandwiches	Honey Roast Ham & Egg (Hospital Shop)	43
+Sandwiches	Honey Roast Ham (Hospital Shop)	41
+Sandwiches	Honey Roast Ham & Egg Salad	44
+Sandwiches	Honey Roast Ham and Egg Salad Roll	41
+Sandwiches	Mexican Chicken Sandwich	49
+Sandwiches	Mexican Chicken Flatbread	49
+Sandwiches	Mexican Chicken Oval Bite	63
+Sandwiches	Mature Cheddar Cheese Ploughman's Oval Bite	52
+Sandwiches	Roast Chicken with Honey Mustard Mayonnaise Oval Bite	50
+Sandwiches	Roast Chicken Salad	45
+Sandwiches	Roast Chicken Salad Roll	44
+Sandwiches	Tandoori Chicken Sandwich	47
+Sandwiches	Tandoori Chicken Roll	43
+Sandwiches	Tuna Crunch (Hospital Shop)	47
+Sandwiches	Tuna Crunch Roll	43
+Sandwiches	Tuna Mayonnaise & Cucumber Sandwich	44
+Sandwiches	Tuna Mayonnaise Stottie	68
+Sandwiches	Cheese & Onion Stottie	71
+Baguettes	Free Range Egg Mayonnaise Baguette	63
+Baguettes	Free Range Egg Mayonnaise Half Baguette	31
+Baguettes	Ham & Cheese Baguette	57
+Baguettes	Mature Cheddar Cheese Salad Baguette	59
+Baguettes	Mexican Chicken Baguette	73
+Baguettes	Roast Chicken and Bacon Club Baguette	62
+Baguettes	Roast Chicken and Bacon Club Half Baguette	31
+Baguettes	Roast Chicken Mayonnaise Baguette	62
+Baguettes	Tandoori Chicken Baguette	65
+Baguettes	Tandoori Chicken Half Baguette	32
+Baguettes	Tuna Crunch Baguette	64
+Hot Food	Hot Ham & Cheese Baguette	56
+Hot Food	Hot Buffalo Chicken Baguette	64
+Hot Food	Hot Mexican Chicken Baguette	75
+Hot Food	BBQ Chicken and Bacon Melt Baguette	91
+Hot Food	Southern Fried Chicken Baguette	83
+Hot Food	Ham and Cheese Toastie	58
+Hot Food	Cheese and Caramelised Onion Toastie	69
+Hot Food	Chicken & Pepperoni Pizza Toastie	62
+Hot Food	Southern Fried Chicken Goujons	32
+Hot Food	Spicy BBQ Chicken Bites	22
+Hot Food	Mozzarella & Cheddar Bites	22
+Hot Food	Southern Fried Potato Wedges	38
+Hot Food	BBQ Bites Meal Box	61
+Hot Food	Mac & Cheese	45
+Hot Food	Tomato Soup	25
+Pizza	Margherita Pizza (1 slice)	64
+Pizza	Margherita Pizza Box 2 Pack	128
+Pizza	Margherita Pizza Box 4 Pack	256
+Pizza	Margherita Pizza Box 6 Pack	384
+Pizza	Pepperoni Pizza (1 slice)	64
+Pizza	Pepperoni Pizza Box 2 Pack	127
+Pizza	Pepperoni Pizza Box 4 Pack	255
+Pizza	Pepperoni Pizza Box 6 Pack	382
+Pizza	BBQ Chicken & Bacon Pizza (1 slice)	72
+Pizza	BBQ Chicken & Bacon Pizza Box 2 Pack	145
+Pizza	BBQ Chicken & Bacon Pizza Box 4 Pack	289
+Pizza	BBQ Chicken & Bacon Pizza Box 6 Pack	434
+Pizza	Buffalo Chicken Pizza (1 slice)	68
+Pizza	Buffalo Chicken Pizza Box 2 Pack	135
+Pizza	Buffalo Chicken Pizza Box 4 Pack	270
+Pizza	Buffalo Chicken Pizza Box 6 Pack	405
+Pizza	Spicy Chicken Pizza (1 slice)	64
+Pizza	Spicy Chicken Pizza Box 2 Pack	129
+Pizza	Spicy Chicken Pizza Box 4 Pack	257
+Pizza	Spicy Chicken Pizza Box 6 Pack	386
+Pizza	Veggie Feast Pizza (1 slice)	69
+Pizza	Veggie Feast Pizza Box 2 Pack	138
+Pizza	Veggie Feast Pizza Box 4 Pack	276
+Pizza	Veggie Feast Pizza Box 6 Pack	414
+Salads & Pasta	Chicken Caesar Salad with Egg	15
+Salads & Pasta	BBQ Chicken and Bacon Pasta	51
+Salads & Pasta	Tomato and Mozzarella Pasta	51
+Salads & Pasta	Prawn Layered Pasta Salad	44
+Salads & Pasta	Side Salad	1.7
+Dips & Sauces	Buffalo Sauce	3.9
+Dips & Sauces	Garlic & Herb Dip	2.9
+Dips & Sauces	Hot Honey	15
+Dips & Sauces	Smoky BBQ Dip	18
+Dips & Sauces	Milk Chocolate Dipping Sauce	34
+Dips & Sauces	Salted Caramel Dipping Sauce	34
+Dips & Sauces	Spread (10g)	0
+Doughnuts	Glazed Ring Doughnut	35
+Doughnuts	Glazed Ring Doughnuts (2 pack)	70
+Doughnuts	Jam Doughnut	37
+Doughnuts	Pink Jammie Doughnut	46
+Doughnuts	Caramel Custard Doughnut	40
+Doughnuts	Vanilla Custard Cream Doughnut	32
+Doughnuts	Triple Chocolate Doughnut	40
+Doughnuts	Sugar Strand Doughnut	30
+Doughnuts	Pumpkin Spice Doughnut	46
+Doughnuts	Yum Yum	34
+Doughnuts	Yum Yums (2 pack)	69
+Doughnuts	Hot Yum Yums	69
+Sweet Treats	Apple Danish	55
+Sweet Treats	Bavarian Slice	52
+Sweet Treats	Belgian Bun	78
+Sweet Treats	Bonfire Toffee Muffin	52
+Sweet Treats	Triple Chocolate Muffin	58
+Sweet Treats	Caramel Crispy	35
+Sweet Treats	Chocolate Brownie Bar	26
+Sweet Treats	Hot Chocolate Brownies	91
+Sweet Treats	Chocolate Cake Bar	32
+Sweet Treats	Cream Éclair	25
+Sweet Treats	Cream Iced Finger	47
+Sweet Treats	Empire Biscuit	45
+Sweet Treats	Fruit Scone	48
+Sweet Treats	Cheese Scone	28
+Sweet Treats	Fruity Flapjack	34
+Sweet Treats	Gingerbread Man	30
+Sweet Treats	Jammy Heart Biscuit	35
+Sweet Treats	Star Biscuit	22
+Sweet Treats	Milk Chocolate Caramel Shortbread	36
+Sweet Treats	Milk Chocolate Caramel Shortbread Offcuts	154
+Sweet Treats	Milk Chocolate Cookie	38
+Sweet Treats	Triple Chocolate Cookie	36
+Sweet Treats	White Chocolate Cookie	39
+Sweet Treats	Hot Milk Chocolate Cookies	76
+Sweet Treats	Novelty Bun (pink)	26
+Sweet Treats	Novelty Bun (white)	26
+Sweet Treats	Peach Melba	43
+Sweet Treats	Pineapple Cake	41
+Sweet Treats	Tottenham Cake	55
+Sweet Treats	Vanilla Custard Slice	50
+Sweet Treats	Apple and Strawberry Fruit Pot	8.7
+Sweet Treats	Pineapple Fruit Pot	12
+Bread & Rolls	Baguette (plain bread)	56
+Bread & Rolls	Corn Topped Roll	33
+Bread & Rolls	Stottie	33
+Bread & Rolls	White & Wholemeal Roll	37
+Bread & Rolls	Malted Brown Loaf (per portion)	21
+Bread & Rolls	White & Wholemeal Loaf (per portion)	18
+Bread & Rolls	White Bread made with Sourdough (per portion)	28
+Bread & Rolls	Oval Bite (plain bread)	46
+Crisps	Greggs Mature Cheddar & Onion Hand Cooked Crisps 40g	23
+Crisps	Greggs Sea Salt & Cider Vinegar Hand Cooked Crisps 40g	23
+Crisps	Greggs Thai Sweet Chilli Flavour Hand Cooked Crisps 40g	23
+Hot Drinks	Americano Regular	1.7
+Hot Drinks	Americano Large	2.3
+Hot Drinks	Americano Decaf Regular	1.7
+Hot Drinks	Americano Decaf Large	2.3
+Hot Drinks	White Coffee Regular	5.1
+Hot Drinks	White Coffee Large	5.7
+Hot Drinks	White Coffee Decaf Regular	5.1
+Hot Drinks	White Coffee Decaf Large	5.7
+Hot Drinks	Cappuccino Regular	12
+Hot Drinks	Cappuccino Large	13
+Hot Drinks	Cappuccino Decaf Regular	12
+Hot Drinks	Cappuccino Decaf Large	13
+Hot Drinks	Latte Regular	13
+Hot Drinks	Latte Large	14
+Hot Drinks	Latte Decaf Regular	13
+Hot Drinks	Latte Decaf Large	14
+Hot Drinks	Flat White Regular	8.7
+Hot Drinks	Flat White Decaf	8.7
+Hot Drinks	Caramel Latte Regular	26
+Hot Drinks	Caramel Latte Large	27
+Hot Drinks	Caramel Latte Decaf Regular	26
+Hot Drinks	Caramel Latte Decaf Large	27
+Hot Drinks	Vanilla Latte Regular	26
+Hot Drinks	Vanilla Latte Large	28
+Hot Drinks	Vanilla Latte Decaf Regular	26
+Hot Drinks	Vanilla Latte Decaf Large	28
+Hot Drinks	Pumpkin Spice Latte with Salted Caramel Drizzle Regular	29
+Hot Drinks	Pumpkin Spice Latte with Salted Caramel Drizzle Large	30
+Hot Drinks	Pumpkin Spice Latte with Salted Caramel Drizzle Decaf Regular	29
+Hot Drinks	Pumpkin Spice Latte with Salted Caramel Drizzle Decaf Large	30
+Hot Drinks	Mocha Regular	39
+Hot Drinks	Mocha Large	51
+Hot Drinks	Mocha Decaf Regular	39
+Hot Drinks	Mocha Decaf Large	51
+Hot Drinks	Hot Chocolate Regular	36
+Hot Drinks	Hot Chocolate Large	48
+Hot Drinks	Espresso Shot	1.9
+Hot Drinks	Espresso Extra Shot	1.3
+Hot Drinks	Espresso Decaf Shot	1.9
+Hot Drinks	Espresso Decaf Extra Shot	1.3
+Hot Drinks	White Tea Regular	0.9
+Hot Drinks	White Tea Large	1.2
+Hot Drinks	Green Tea Regular	0
+Hot Drinks	Peppermint Tea Regular	0
+Hot Drinks	Extra Caramel Syrup	11
+Hot Drinks	Extra Vanilla Syrup	12
+Hot Drinks	Extra Pumpkin Spice Syrup	11
+Hot Drinks	Extra Cream	0.9
+Hot Drinks	Extra Hot Chocolate Powder	0.7
+Cold Drinks	Iced Americano Regular	1.9
+Cold Drinks	Iced Americano Decaf Regular	1.9
+Cold Drinks	Iced Latte Regular	13
+Cold Drinks	Iced Latte Decaf Regular	13
+Cold Drinks	Iced Caramel Latte Regular	24
+Cold Drinks	Iced Caramel Latte Decaf Regular	24
+Cold Drinks	Iced Vanilla Latte Regular	24
+Cold Drinks	Iced Vanilla Latte Decaf Regular	24
+Cold Drinks	Iced Mocha Regular	27
+Cold Drinks	Iced Mocha Decaf Regular	27
+Cold Drinks	Iced Pumpkin Spice Latte with Salted Caramel Drizzle Regular	31
+Cold Drinks	Iced Pumpkin Spice Latte with Salted Caramel Drizzle Decaf Regular	31
+Cold Drinks	Iced Chocolate	26
+Cold Drinks	Iced Caramel Chocolate	41
+Cold Drinks	Iced Matcha Latte	10
+Cold Drinks	Blueberry Iced Matcha Latte	20
+Cold Drinks	Strawberry Iced Matcha Latte	23
+Cold Drinks	Vanilla Iced Matcha Latte	21
+Cold Drinks	Pumpkin Spice Iced Matcha Latte with Salted Caramel Drizzle	24
+Cold Drinks	Cherry & Mango Cooler	20
+Cold Drinks	Mango and Strawberry Cooler	26
+Cold Drinks	Cloudy Lemonade	14
+Cold Drinks	Cherry Lemonade	15
+Cold Drinks	Mango Lemonade	19
+Cold Drinks	Strawberry Lemonade	17
+Cold Drinks	Sparkling Raspberry Lemonade 500ml	0.5
+Cold Drinks	Fairtrade Apple Juice from Concentrate (per 150ml portion)	17
+Cold Drinks	Greggs Natural Mineral Water 500ml	0
+Cold Drinks	Greggs Natural Mineral Water 750ml	0

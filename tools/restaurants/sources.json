@@ -50,5 +50,23 @@
   "aliases": [
    "kentucky"
   ]
+ },
+ {
+  "file": "greggs.tsv",
+  "chain": "Greggs",
+  "source": "Greggs Nutritional Information (guide only)",
+  "url": "https://a.storyblok.com/f/94904/x/7dd8489dab/nutritional-information.pdf",
+  "date": "September 2026"
+ },
+ {
+  "file": "fiveguys.tsv",
+  "chain": "Five Guys",
+  "source": "Five Guys UK Nutrition & Allergen Guide",
+  "url": "https://www.fiveguys.co.uk/wp-content/uploads/sites/30/2026/10/FGUK_FOH_allergen_ingredient_nutrition_MM_shake_DIGITAL_20261013.pdf",
+  "date": "October 2026",
+  "aliases": [
+   "fiveguys",
+   "5 guys"
+  ]
  }
 ]

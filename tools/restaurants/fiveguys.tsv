@@ -1,0 +1,97 @@
+section	name	carbs_g
+Meat	Bacon (portion)	0.7
+Meat	Beef Burger Patty (one patty)	0
+Meat	Hot Dog Sausage (no bun)	2.1
+Buns	Burger Bun	38
+Buns	Hot Dog Bun	34
+Fries	Mini Fries	37
+Fries	Little Fries	70
+Fries	Regular Fries	115
+Fries	Large Fries	162
+Loaded Fries	Loaded Fries	77
+Loaded Fries	Loaded Cajun Fries	79
+Loaded Fries	Diced Green Peppers (loaded fries topping)	0.8
+Loaded Fries	Fresh Onions (loaded fries topping)	1.1
+Loaded Fries	Diced Jalapeño Peppers (loaded fries topping)	0.6
+Loaded Fries	Diced Tomatoes (loaded fries topping)	0.5
+Toppings	BBQ Sauce	3.3
+Toppings	Cheese	1.1
+Toppings	Green Peppers	0
+Toppings	Grilled Mushrooms	2.0
+Toppings	Hot Sauce	0
+Toppings	HP Brown Sauce	2.0
+Toppings	Jalapeño Peppers	0
+Toppings	Tomato Ketchup	3.2
+Toppings	Lettuce	0
+Toppings	Mayonnaise	0
+Toppings	Mustard	0
+Toppings	Fresh Onions	1.8
+Toppings	Grilled Onions	2.8
+Toppings	Pickles	0
+Toppings	Relish	4.6
+Toppings	Tomatoes	1.3
+Toppings	Crispy Fried Onions	3.2
+Milkshakes	Milkshake Base (Regular)	75
+Milkshakes	Whipped Cream (Regular shake)	0.6
+Milkshakes	Flake mix-in (Regular shake)	4.8
+Milkshakes	Banana mix-in (Regular shake)	36
+Milkshakes	Chocolate mix-in (Regular shake)	48
+Milkshakes	Biscoff Crumb mix-in (Regular shake)	17
+Milkshakes	Oreo Cookie Pieces mix-in (Regular shake)	17
+Milkshakes	Jimmy's Iced Coffee mix-in (Regular shake)	1.6
+Milkshakes	Pistachio mix-in (Regular shake)	2.1
+Milkshakes	Reese's Peanut Butter Cups mix-in (Regular shake)	20
+Milkshakes	Peanut Butter mix-in (Regular shake)	6.4
+Milkshakes	Salted Caramel mix-in (Regular shake)	42
+Milkshakes	Strawberry mix-in (Regular shake)	28
+Milkshakes	Watermelon mix-in (Regular shake)	44
+Milkshakes	Myprotein mix-in 12g (Regular shake)	0.7
+Little Milkshakes	Milkshake Base (Little)	37
+Little Milkshakes	Whipped Cream (Little shake)	0
+Little Milkshakes	Flake mix-in (Little shake)	4.8
+Little Milkshakes	Banana mix-in (Little shake)	18
+Little Milkshakes	Chocolate mix-in (Little shake)	24
+Little Milkshakes	Biscoff Crumb mix-in (Little shake)	8.0
+Little Milkshakes	Oreo Cookie Pieces mix-in (Little shake)	8.0
+Little Milkshakes	Jimmy's Iced Coffee mix-in (Little shake)	0.8
+Little Milkshakes	Pistachio mix-in (Little shake)	1.1
+Little Milkshakes	Reese's Peanut Butter Cups mix-in (Little shake)	10
+Little Milkshakes	Peanut Butter mix-in (Little shake)	3.2
+Little Milkshakes	Salted Caramel mix-in (Little shake)	21
+Little Milkshakes	Strawberry mix-in (Little shake)	14
+Little Milkshakes	Watermelon mix-in (Little shake)	22
+Little Milkshakes	Myprotein mix-in 6g (Little shake)	0.4
+Burgers	Hamburger	35
+Burgers	Little Hamburger	35
+Burgers	Cheeseburger	39
+Burgers	Little Cheeseburger	39
+Burgers	Bacon Burger	36
+Burgers	Bacon Cheeseburger	37
+Burgers	Little Bacon Cheeseburger	36
+Hot Dogs	Hot Dog	35
+Hot Dogs	Cheese Dog	39
+Hot Dogs	Bacon Dog	38
+Hot Dogs	Bacon Cheese Dog	36
+Sandwiches	Veggie Sandwich	52
+Sandwiches	Cheese Veggie Sandwich	57
+Sandwiches	Grilled Cheese	42
+Sandwiches	BLT	45
+Sandwiches	Lettuce Wrap	5
+Breakfast (Heathrow only)	Sausage, Egg & Cheese Sandwich	46
+Breakfast (Heathrow only)	Bacon, Egg & Cheese Sandwich	42
+Breakfast (Heathrow only)	Little Sausage, Egg & Cheese Sandwich	42
+Breakfast (Heathrow only)	Little Bacon, Egg & Cheese Sandwich	40
+Breakfast (Heathrow only)	Latte	9.6
+Breakfast (Heathrow only)	Cappuccino	7.5
+Breakfast (Heathrow only)	Flat White	7.8
+Breakfast (Heathrow only)	Americano Black	0.8
+Breakfast (Heathrow only)	Double Espresso	0.6
+Breakfast (Heathrow only)	Breakfast Tea	0.0
+Build Your Own (Heathrow only)	Little Egg Sandwich	39
+Build Your Own (Heathrow only)	Little Sausage Sandwich	40
+Build Your Own (Heathrow only)	Add Cheese	1
+Build Your Own (Heathrow only)	Add Bacon	1
+Build Your Own (Heathrow only)	Sausage Patty	2.6
+Sides (Heathrow only)	Hash Browns	20
+Other	Egg	1.3
+Other	Cajun Seasoning	2.9
