@@ -40,5 +40,15 @@
   "aliases": [
    "costa coffee"
   ]
+ },
+ {
+  "file": "kfc.tsv",
+  "chain": "KFC",
+  "source": "KFC Allergen & Nutrition Information",
+  "url": "https://brand-uk.assets.kfc.co.uk/nutrition-allergens.pdf",
+  "date": "September 2026",
+  "aliases": [
+   "kentucky"
+  ]
  }
 ]
