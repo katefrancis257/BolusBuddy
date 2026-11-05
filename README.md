@@ -22,7 +22,7 @@ Carb figures come from CoFID 2021 and are converted to match UK packet labels. C
 
 ## Running it
 
-It is a static web app: `index.html`, `foods.js`, `manifest.webmanifest`, `sw.js` and the icons.
+It is a static web app: `index.html`, `core.js`, `foods.js`, `restaurants.js`, `manifest.webmanifest`, `sw.js` and the icons. `core.js` holds the carb maths and the rules for saved data, so the tests can check them.
 
 - **On your computer:** run `python3 -m http.server` in this folder and open http://localhost:8000.
 - **On your phone:** host the folder on any static host (GitHub Pages works), open the address in Safari or Chrome, and choose *Add to Home Screen*.
@@ -30,6 +30,28 @@ It is a static web app: `index.html`, `foods.js`, `manifest.webmanifest`, `sw.js
 Meals, favourites and custom foods are stored in the browser on that device only.
 
 The live camera needs the app served over HTTPS from its own address (for example GitHub Pages). Inside a Claude artifact the camera and the Open Food Facts lookup are blocked, so there the scanner reads barcodes from photos and reads nutrition labels with Claude instead.
+
+## Safety checks
+
+BolusBuddy guards against the mistakes most likely to put a wrong figure into a meal total:
+
+- **Unusual amounts:** more than 1,000 g or ml, more than 10 servings, or more than 150 g of carbs in one item asks you to confirm before it is added.
+- **Old meals:** the meal records when it was started. A meal started more than six hours ago is offered for clearing when the app opens, so old items don't join today's total.
+- **Stable food IDs:** each food is identified by its CoFID code, its name, or its chain and item name, never by its place in a list. A saved item only reopens a food with the same name. Items saved before this change are moved across by name, and any that can't be matched keep their carbs but can no longer be edited.
+- **Favourites:** these are recalculated from the current food figures, and any item whose figure has changed is listed when you open the favourite.
+- **Trace values:** foods where CoFID records only a trace of carbohydrate show 0 g and are marked "trace only, check the label".
+
+## Checks and tests
+
+```
+python3 tools/datacheck.py               # food data ranges, repeated names or IDs, starchy foods at 0 g
+python3 -m unittest discover -s tests    # data check rules
+node --test tests/core.test.js           # carb maths, warnings, IDs and saved-data migration
+```
+
+GitHub Actions runs all three on every push. The build scripts run the same data checks and refuse to write a file that fails them.
+
+After changing any app file or rebuilding the food data, run `python3 tools/stamp_sw.py`. It stamps `sw.js` with a new cache name so phones fetch the new copy. The data check fails while the stamp is out of date.
 
 ## Food data
 
