@@ -50,6 +50,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+button:disabled { opacity: 0.45; cursor: default; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 16px; line-height: 1.45;
@@ -71,8 +72,8 @@ button { cursor: pointer; }
 .brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.875rem; }
 .ghost { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 0.875rem; }
 
-.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
-.tabs button { border: 0; background: none; border-radius: 9px; padding: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+.tabs button { border: 0; background: none; border-radius: 9px; padding: 10px 6px; min-width: 0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
 .count { font-family: var(--font-data); font-size: 0.8rem; min-width: 1.6em; padding: 0 6px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
 .tabs button[aria-selected="true"] .count { background: var(--accent-ink); color: var(--accent); }
@@ -111,6 +112,23 @@ section { display: flex; flex-direction: column; gap: 12px; }
 .row-actions > * { flex: 1 1 160px; }
 .danger-ghost { border: 1px solid var(--line); background: none; color: var(--danger); border-radius: 12px; padding: 11px 14px; font-weight: 600; }
 .note { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.fav-total { font-family: var(--font-display); font-size: 1.5rem; line-height: 1; text-align: right; flex: none; font-variant-numeric: tabular-nums; }
+.fav-total small { display: block; font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+.fav-items { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; }
+.fav-items li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; }
+.fav-items li + li { border-top: 1px solid var(--line); }
+.fav-items .carbs { font-family: var(--font-data); font-weight: 600; flex: none; }
+.fav-items .sub { display: block; color: var(--muted); font-size: 0.85rem; }
+.primary-wide { width: 100%; border: 0; border-radius: 12px; padding: 13px 14px; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+.brand-box { display: flex; flex-direction: column; gap: 10px; }
+.scan-actions { display: grid; gap: 10px; }
+.file-btn { display: block; text-align: center; cursor: pointer; }
+.inline { display: flex; gap: 8px; }
+.inline input { flex: 1; min-width: 0; }
+#scanVideo { width: 100%; max-width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: var(--ink); }
+.source { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; margin: 0; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(110px + env(safe-area-inset-bottom, 0px)); z-index: 6;
+  width: max-content; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 10px 18px; font-weight: 600; font-size: 0.9rem; max-width: calc(100% - 32px); text-align: center; }
 .banner { background: var(--accent-soft); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
 .banner button { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 6px 12px; font-weight: 600; }
 .empty { text-align: center; padding: 28px 16px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; }
@@ -179,19 +197,32 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     <button id="unitsBtn" class="ghost" type="button">Units</button>
   </header>
 
+  <button id="scanBtn" class="primary-wide" type="button">Scan a barcode or label</button>
+
   <nav class="tabs" role="tablist" aria-label="Views">
     <button id="tab-foods" role="tab" aria-selected="true" aria-controls="view-foods" type="button">Foods</button>
     <button id="tab-meal" role="tab" aria-selected="false" aria-controls="view-meal" type="button">My meal <span id="mealCount" class="count">0</span></button>
+    <button id="tab-favs" role="tab" aria-selected="false" aria-controls="view-favs" type="button">Favourites <span id="favCount" class="count">0</span></button>
   </nav>
 
   <main>
     <section id="view-foods" role="tabpanel" aria-labelledby="tab-foods">
-      <div class="search"><input id="q" type="search" placeholder="Search foods, for example bagel" autocomplete="off" aria-label="Search foods"></div>
+      <div class="search"><input id="q" type="search" placeholder="Search foods or brands, for example Hovis" autocomplete="off" aria-label="Search foods"></div>
       <div id="cats" class="chips" aria-label="Food groups"></div>
       <ul id="foodList" class="list"></ul>
-      <div id="noResults" class="empty" hidden><strong>No foods match</strong>Try another word, or add it from the packet label.</div>
+      <p id="moreHint" class="note" hidden></p>
+      <div id="noResults" class="empty" hidden><strong>Nothing in the food list matches</strong>Try another word, search branded products, or scan the barcode.</div>
+      <div id="brandBox" class="brand-box" hidden>
+        <p class="meta" style="margin:0">Branded and supermarket own-brand products. Pick a shop to narrow the search.</p>
+        <div id="shops" class="chips" aria-label="Supermarket"></div>
+        <button id="brandBtn" class="outline wide" type="button">Search branded products</button>
+        <p id="brandStatus" class="meta" aria-live="polite"></p>
+        <ul id="brandList" class="list"></ul>
+      </div>
       <button id="addCustomBtn" class="outline wide" type="button">Add a food from a packet label</button>
-      <p class="note">Figures are typical UK values for carbohydrate per 100 g (or 100 ml). Brands and recipes vary, so check the packet when you have it.</p>
+      <button id="eatOutBtn" class="outline wide" type="button">Add a restaurant or café item</button>
+      <p class="note">Carb figures come from McCance and Widdowson's Composition of Foods Integrated Dataset (CoFID 2021, Public Health England, Open Government Licence v3.0), converted to match UK packet labels. Drinks use the per 100 g figure for 100 ml. Brands and recipes vary, so the packet label is the better source when you have it.</p>
+      <p class="note">Restaurant and café dishes are per serving, copied from each chain's own published nutrition guide. The guide's date is shown on every dish.</p>
     </section>
 
     <section id="view-meal" role="tabpanel" aria-labelledby="tab-meal" hidden>
@@ -199,10 +230,17 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <ul id="mealList" class="list"></ul>
       <div id="mealEmpty" class="empty" hidden><strong>Your meal is empty</strong>Pick foods from the Foods tab and they will add up here.</div>
       <div class="row-actions">
-        <button id="quickAddBtn" class="outline" type="button">Add carbs from a label</button>
+        <button id="quickAddBtn" class="outline" type="button">Add carbs from a label or menu</button>
+        <button id="saveFavBtn" class="outline" type="button">Save as favourite</button>
         <button id="clearMeal" class="danger-ghost" type="button">Clear meal</button>
       </div>
       <p class="note">BolusBuddy counts carbohydrate only. It does not work out insulin doses. Use your own ratio and the advice of your diabetes team.</p>
+    </section>
+
+    <section id="view-favs" role="tabpanel" aria-labelledby="tab-favs" hidden>
+      <ul id="favList" class="list"></ul>
+      <div id="favEmpty" class="empty" hidden><strong>No favourite meals yet</strong>Build a meal you eat often, then tap Save as favourite on the My meal tab.</div>
+      <p class="note">Favourites keep the carb figures from when you saved them. Saving a meal with the same name replaces the earlier one.</p>
     </section>
   </main>
 </div>
@@ -260,6 +298,7 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
       <div class="field"><label for="cPortion">Portion name (optional)</label><input id="cPortion" maxlength="30" placeholder="1 wrap"></div>
       <div class="field"><label for="cPortionG">Portion weight</label><input id="cPortionG" type="number" inputmode="decimal" min="0" step="any" placeholder="62"></div>
     </div>
+    <p class="source" id="cSource" hidden></p>
     <p class="err" id="cErr" hidden></p>
     <div class="actions">
       <button type="button" id="cCancel">Cancel</button>
@@ -270,10 +309,12 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
 
 <dialog id="quickDlg" aria-labelledby="qTitle">
   <form class="sheet" id="quickForm" method="dialog">
-    <h2 id="qTitle">Add carbs from a label</h2>
-    <p class="meta">For a packet that gives carbs per serving, or a restaurant menu.</p>
-    <div class="field"><label for="qName">What is it?</label><input id="qName" maxlength="60" placeholder="For example, meal deal sandwich"></div>
-    <div class="field"><label for="qCarbs">Carbohydrate (g)</label><input id="qCarbs" type="number" inputmode="decimal" min="0" step="any" required></div>
+    <h2 id="qTitle">Add carbs from a label or menu</h2>
+    <p class="meta">For a packet that gives carbs per serving, or a restaurant or café item. Chains publish carbs per item in their nutrition information, usually on their website or app.</p>
+    <div class="field"><label for="qPlace">Restaurant or café (optional)</label><input id="qPlace" maxlength="30" list="chainList" autocomplete="off" placeholder="For example, Nando's"><datalist id="chainList"><option value="McDonald's"></option><option value="Burger King"></option><option value="KFC"></option><option value="Nando's"></option><option value="Greggs"></option><option value="Subway"></option><option value="Pizza Express"></option><option value="Pizza Hut"></option><option value="Domino's"></option><option value="Papa John's"></option><option value="Wagamama"></option><option value="Five Guys"></option><option value="Pret A Manger"></option><option value="Costa Coffee"></option><option value="Starbucks"></option><option value="Caffè Nero"></option><option value="Wetherspoon"></option><option value="Toby Carvery"></option><option value="Harvester"></option><option value="Frankie &amp; Benny's"></option><option value="Zizzi"></option><option value="ASK Italian"></option><option value="Prezzo"></option><option value="Bella Italia"></option><option value="Leon"></option><option value="Itsu"></option><option value="Wasabi"></option><option value="YO! Sushi"></option><option value="TGI Fridays"></option><option value="Taco Bell"></option><option value="Popeyes"></option><option value="Chopstix"></option><option value="Tortilla"></option><option value="Las Iguanas"></option><option value="Beefeater"></option><option value="Brewers Fayre"></option></datalist></div>
+    <div class="field"><label for="qName">What is it?</label><input id="qName" maxlength="60" placeholder="For example, 1/4 chicken with peri chips"></div>
+    <div class="field"><label for="qCarbs">Carbohydrate per serving (g)</label><input id="qCarbs" type="number" inputmode="decimal" min="0" step="any" required></div>
+    <label class="radio"><input type="checkbox" id="qRemember"><span>Remember this for next time<small>Saved under Eating out, so you can add it again in one tap.</small></span></label>
     <p class="err" id="qErr" hidden></p>
     <div class="actions">
       <button type="button" id="qCancel">Cancel</button>
@@ -281,6 +322,55 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     </div>
   </form>
 </dialog>
+
+<dialog id="scanDlg" aria-labelledby="scTitle">
+  <div class="sheet">
+    <h2 id="scTitle">Scan a product</h2>
+    <div id="scanLive" hidden>
+      <video id="scanVideo" playsinline muted></video>
+      <p class="meta">Hold the barcode inside the frame.</p>
+    </div>
+    <div class="scan-actions">
+      <label class="outline file-btn" id="barcodePhotoWrap">Take a photo of the barcode<input type="file" id="barcodePhoto" accept="image/*" capture="environment" hidden></label>
+      <label class="outline file-btn" id="labelPhotoWrap" hidden>Photograph the nutrition label<input type="file" id="labelPhoto" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></label>
+    </div>
+    <div class="field">
+      <label for="barcodeIn">Or type the barcode number</label>
+      <div class="inline"><input id="barcodeIn" inputmode="numeric" maxlength="14" autocomplete="off"><button type="button" id="barcodeGo" class="outline">Look up</button></div>
+    </div>
+    <p id="scanStatus" class="meta" aria-live="polite"></p>
+    <button type="button" id="scanManual" class="outline" hidden>Add it by hand</button>
+    <div class="actions"><button type="button" id="scanClose">Close</button></div>
+  </div>
+</dialog>
+
+<dialog id="saveFavDlg" aria-labelledby="sfTitle">
+  <form class="sheet" id="saveFavForm" method="dialog">
+    <h2 id="sfTitle">Save as favourite</h2>
+    <p class="meta" id="sfMeta"></p>
+    <div class="field"><label for="sfName">Name this meal</label><input id="sfName" required maxlength="40" placeholder="For example, weekday breakfast"></div>
+    <p class="err" id="sfErr" hidden></p>
+    <div class="actions">
+      <button type="button" id="sfCancel">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="favDlg" aria-labelledby="fTitle">
+  <form class="sheet" id="favForm" method="dialog">
+    <h2 id="fTitle">Favourite</h2>
+    <ul class="fav-items" id="fItems"></ul>
+    <div class="result"><span>Total carbohydrate</span><b id="fTotal">0 g</b></div>
+    <button type="button" id="fDelete" class="del-custom">Delete this favourite</button>
+    <div class="actions">
+      <button type="button" id="fClose">Close</button>
+      <button type="submit" class="primary">Add to my meal</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" hidden></div>
 
 <dialog id="unitsDlg" aria-labelledby="uTitle">
   <form class="sheet" id="unitsForm" method="dialog">
@@ -292,138 +382,43 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   </form>
 </dialog>
 
+<script src="foods.js"></script>
+<script src="restaurants.js"></script>
 <script>
 (function () {
   "use strict";
 
-  // [name, group, carbs per 100 g or ml, unit, [[portion label, weight], ...]]
-  // Typical UK values for available carbohydrate. Approximate; brands vary.
-  var FOODS = [
-    ["White bread", "Bread", 46, "g", [["1 medium slice", 36], ["1 thick slice", 44]]],
-    ["Wholemeal bread", "Bread", 42, "g", [["1 medium slice", 36], ["1 thick slice", 44]]],
-    ["Seeded or granary bread", "Bread", 43, "g", [["1 slice", 44]]],
-    ["White bread roll", "Bread", 50, "g", [["1 roll", 60]]],
-    ["Burger bun", "Bread", 47, "g", [["1 bun", 60]]],
-    ["Bagel, plain", "Bread", 50, "g", [["1 bagel", 85]]],
-    ["Pitta bread, white", "Bread", 55, "g", [["1 pitta", 60], ["1 mini pitta", 30]]],
-    ["Tortilla wrap, plain", "Bread", 50, "g", [["1 wrap", 62], ["1 mini wrap", 35]]],
-    ["Naan bread, plain", "Bread", 50, "g", [["1 large naan", 160], ["1 mini naan", 65]]],
-    ["Crumpet", "Bread", 38, "g", [["1 crumpet", 55]]],
-    ["English muffin", "Bread", 44, "g", [["1 muffin", 65]]],
-    ["Croissant", "Bread", 43, "g", [["1 croissant", 60]]],
-    ["Crispbread (rye)", "Bread", 66, "g", [["1 crispbread", 10]]],
-    ["Rice cake", "Bread", 80, "g", [["1 rice cake", 8]]],
-
-    ["Porridge oats (dry)", "Cereal", 60, "g", [["1 sachet or small bowl", 40], ["1 tablespoon", 10]]],
-    ["Wheat biscuits (e.g. Weetabix)", "Cereal", 69, "g", [["1 biscuit", 19]]],
-    ["Shredded wheat", "Cereal", 68, "g", [["1 biscuit", 22]]],
-    ["Cornflakes", "Cereal", 84, "g", [["1 bowl", 30]]],
-    ["Crisped rice cereal", "Cereal", 87, "g", [["1 bowl", 30]]],
-    ["Bran flakes", "Cereal", 66, "g", [["1 bowl", 30]]],
-    ["Muesli", "Cereal", 66, "g", [["1 bowl", 45]]],
-    ["Granola", "Cereal", 60, "g", [["1 bowl", 45]]],
-
-    ["White rice, boiled", "Rice & pasta", 31, "g", [["1 portion", 180], ["1 tablespoon", 25]]],
-    ["Brown rice, boiled", "Rice & pasta", 32, "g", [["1 portion", 180], ["1 tablespoon", 25]]],
-    ["Rice, uncooked", "Rice & pasta", 79, "g", [["1 portion", 75]]],
-    ["Pasta, boiled", "Rice & pasta", 31, "g", [["1 portion", 230], ["1 small portion", 150]]],
-    ["Wholewheat pasta, boiled", "Rice & pasta", 27, "g", [["1 portion", 230]]],
-    ["Pasta, uncooked", "Rice & pasta", 72, "g", [["1 portion", 75]]],
-    ["Egg noodles, boiled", "Rice & pasta", 25, "g", [["1 portion", 200]]],
-    ["Rice noodles, boiled", "Rice & pasta", 24, "g", [["1 portion", 200]]],
-    ["Couscous, cooked", "Rice & pasta", 23, "g", [["1 portion", 150]]],
-    ["Quinoa, cooked", "Rice & pasta", 19, "g", [["1 portion", 150]]],
-
-    ["Potatoes, boiled", "Potatoes", 17, "g", [["1 portion", 175], ["1 egg-sized potato", 50]]],
-    ["Mashed potato", "Potatoes", 15, "g", [["1 portion", 180], ["1 scoop", 60]]],
-    ["Jacket potato, with skin", "Potatoes", 22, "g", [["1 medium", 180], ["1 large", 250]]],
-    ["Roast potatoes", "Potatoes", 26, "g", [["1 roast potato", 60]]],
-    ["Oven chips", "Potatoes", 30, "g", [["1 portion", 165]]],
-    ["Chip shop chips", "Potatoes", 30, "g", [["1 portion", 200]]],
-    ["Sweet potato, baked", "Potatoes", 21, "g", [["1 medium", 130]]],
-
-    ["Apple", "Fruit", 12, "g", [["1 medium", 150]]],
-    ["Banana, peeled", "Fruit", 20, "g", [["1 medium", 100], ["1 large", 130]]],
-    ["Orange, peeled", "Fruit", 8.5, "g", [["1 medium", 160]]],
-    ["Satsuma or clementine, peeled", "Fruit", 8, "g", [["1 fruit", 70]]],
-    ["Pear", "Fruit", 10, "g", [["1 medium", 160]]],
-    ["Grapes", "Fruit", 15, "g", [["1 handful", 80]]],
-    ["Strawberries", "Fruit", 6, "g", [["1 handful", 80]]],
-    ["Blueberries", "Fruit", 10, "g", [["1 handful", 80]]],
-    ["Kiwi fruit", "Fruit", 10, "g", [["1 fruit", 75]]],
-    ["Mango", "Fruit", 14, "g", [["1 portion", 80]]],
-    ["Pineapple", "Fruit", 10, "g", [["1 portion", 80]]],
-    ["Melon", "Fruit", 6, "g", [["1 slice", 150]]],
-    ["Watermelon", "Fruit", 7, "g", [["1 slice", 200]]],
-    ["Raisins", "Fruit", 69, "g", [["1 mini box", 14], ["1 tablespoon", 25]]],
-    ["Dates, dried", "Fruit", 68, "g", [["1 date", 8]]],
-
-    ["Peas", "Veg & beans", 10, "g", [["1 portion", 80]]],
-    ["Sweetcorn", "Veg & beans", 15, "g", [["1 portion", 80]]],
-    ["Carrots, boiled", "Veg & beans", 4.5, "g", [["1 portion", 80]]],
-    ["Parsnips, roasted", "Veg & beans", 13, "g", [["1 portion", 80]]],
-    ["Butternut squash", "Veg & beans", 7, "g", [["1 portion", 80]]],
-    ["Broccoli", "Veg & beans", 2, "g", [["1 portion", 80]]],
-    ["Tomato", "Veg & beans", 3, "g", [["1 medium", 85]]],
-    ["Salad leaves", "Veg & beans", 1.5, "g", [["1 bowl", 50]]],
-    ["Baked beans", "Veg & beans", 13, "g", [["Half a can", 207], ["1 small can", 150]]],
-    ["Chickpeas, canned", "Veg & beans", 15, "g", [["1 portion", 80]]],
-    ["Kidney beans, canned", "Veg & beans", 14, "g", [["1 portion", 80]]],
-    ["Lentils, boiled", "Veg & beans", 17, "g", [["1 portion", 80]]],
-
-    ["Semi-skimmed milk", "Dairy & drinks", 4.8, "ml", [["1 glass", 200], ["In tea or coffee", 30]]],
-    ["Whole milk", "Dairy & drinks", 4.7, "ml", [["1 glass", 200]]],
-    ["Oat drink", "Dairy & drinks", 6.5, "ml", [["1 glass", 200]]],
-    ["Natural yoghurt", "Dairy & drinks", 6, "g", [["1 pot", 125]]],
-    ["Greek-style yoghurt", "Dairy & drinks", 4, "g", [["1 pot", 125]]],
-    ["Fruit yoghurt", "Dairy & drinks", 14, "g", [["1 pot", 125]]],
-    ["Cheddar cheese", "Dairy & drinks", 0.1, "g", [["1 matchbox piece", 30]]],
-    ["Vanilla ice cream", "Dairy & drinks", 24, "g", [["1 scoop", 60]]],
-    ["Custard, ready made", "Dairy & drinks", 15, "g", [["1 portion", 120]]],
-    ["Orange juice", "Dairy & drinks", 9, "ml", [["1 small glass", 150]]],
-    ["Apple juice", "Dairy & drinks", 10, "ml", [["1 small glass", 150]]],
-    ["Cola, full sugar", "Dairy & drinks", 10.6, "ml", [["1 can", 330]]],
-    ["Lager", "Dairy & drinks", 3, "ml", [["1 pint", 568]]],
-
-    ["Chicken nuggets", "Meals", 16, "g", [["1 nugget", 18]]],
-    ["Fish fingers", "Meals", 17, "g", [["1 fish finger", 28]]],
-    ["Battered fish", "Meals", 9, "g", [["1 fillet", 180]]],
-    ["Pork sausage", "Meals", 8, "g", [["1 sausage", 40]]],
-    ["Sausage roll", "Meals", 25, "g", [["1 sausage roll", 100]]],
-    ["Pizza, cheese and tomato", "Meals", 32, "g", [["1 slice (1/8 of 12 inch)", 70], ["Whole 10 inch pizza", 330]]],
-    ["Beef lasagne", "Meals", 13, "g", [["1 portion", 400]]],
-    ["Tomato soup", "Meals", 7, "g", [["1 bowl", 300]]],
-    ["Chicken, eggs, meat or fish (plain)", "Meals", 0, "g", [["1 portion", 120]]],
-
-    ["Ready salted crisps", "Snacks & sweets", 50, "g", [["1 bag", 25]]],
-    ["Popcorn, salted", "Snacks & sweets", 58, "g", [["1 bag", 30]]],
-    ["Digestive biscuit", "Snacks & sweets", 64, "g", [["1 biscuit", 15]]],
-    ["Chocolate digestive", "Snacks & sweets", 62, "g", [["1 biscuit", 17]]],
-    ["Rich tea biscuit", "Snacks & sweets", 72, "g", [["1 biscuit", 8]]],
-    ["Jaffa cake", "Snacks & sweets", 70, "g", [["1 cake", 12]]],
-    ["Cereal bar", "Snacks & sweets", 65, "g", [["1 bar", 25]]],
-    ["Milk chocolate", "Snacks & sweets", 57, "g", [["1 bar", 45], ["1 square", 6]]],
-    ["Victoria sponge cake", "Snacks & sweets", 55, "g", [["1 slice", 60]]],
-    ["Scone, plain", "Snacks & sweets", 50, "g", [["1 scone", 70]]],
-    ["Jam doughnut", "Snacks & sweets", 49, "g", [["1 doughnut", 75]]],
-    ["Blueberry muffin", "Snacks & sweets", 50, "g", [["1 muffin", 110]]],
-    ["Sugar", "Snacks & sweets", 100, "g", [["1 teaspoon", 4]]],
-    ["Honey", "Snacks & sweets", 76, "g", [["1 teaspoon", 7]]],
-    ["Jam", "Snacks & sweets", 63, "g", [["1 teaspoon", 7], ["1 tablespoon", 15]]],
-    ["Jelly babies", "Snacks & sweets", 78, "g", [["1 sweet", 6]]],
-    ["Glucose tablet", "Snacks & sweets", 93, "g", [["1 tablet", 3]]]
-  ];
+  // Food data comes from foods.js, generated by tools/build_foods.py from CoFID 2021.
+  var DATA = window.BOLUS_FOODS || { groups: [], curated: [], cofid: [] };
+  var MAX_ROWS = 120;
 
   var STORE = "bolusbuddy.v1";
-  var foods = FOODS.map(function (f, i) {
-    return { id: "b" + i, name: f[0], group: f[1], per100: f[2], unit: f[3], portions: f[4] };
+  var foods = DATA.curated.map(function (f, i) {
+    return { id: "b" + i, name: f[0], group: f[1], per100: f[2], unit: f[3], portions: f[4], code: f[5], common: true };
   });
-  var state = { meal: [], custom: [], units: "cp", example: false };
+  var curatedCodes = {};
+  foods.forEach(function (f) { if (f.code) curatedCodes[f.code] = true; });
+  var cofid = DATA.cofid.filter(function (f) { return !curatedCodes[f[0]]; }).map(function (f) {
+    return { id: "f" + f[0], name: f[1], group: DATA.groups[f[2]], per100: f[3], unit: "g", portions: [], code: f[0], old: !!(f[4] & 1), est: !!(f[4] & 2) };
+  });
+  // Restaurant and café menus come from restaurants.js, copied from each chain's own nutrition guide.
+  var chains = [];
+  (window.BOLUS_CHAINS || []).forEach(function (c, ci) {
+    c.items.forEach(function (it, i) {
+      chains.push({ id: "r" + ci + "-" + i, name: c.chain + " · " + it[1], short: it[1], group: c.chain, section: it[0], perServing: it[2], per100: it[2],
+        unit: "serving", portions: [["1 serving", 1]], chain: c.chain, sourceDate: c.date,
+        hay: fold(c.chain + " · " + it[1] + " " + (c.aliases || []).join(" ")) });
+    });
+  });
+  cofid = cofid.concat(chains);
+  var byId = {};
+  foods.concat(cofid).forEach(function (f) { byId[f.id] = f; });
+  var state = { meal: [], custom: [], favourites: [], units: "cp", example: false };
 
   function load() {
     try {
       var raw = localStorage.getItem(STORE);
-      if (raw) { var s = JSON.parse(raw); if (s && Array.isArray(s.meal)) { state = Object.assign(state, s); return; } }
+      if (raw) { var s = JSON.parse(raw); if (s && Array.isArray(s.meal)) { state = Object.assign(state, s); state.custom.forEach(function (f) { f.custom = true; }); return; } }
     } catch (e) {}
     // First run: show a worked example so the total tray makes sense straight away.
     state.example = true;
@@ -435,14 +430,18 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
-  function allFoods() { return state.custom.concat(foods); }
+  function allFoods() { return state.custom.concat(foods, cofid); }
   function findByName(n) { return foods.filter(function (f) { return f.name === n; })[0]; }
-  function findById(id) { return allFoods().filter(function (f) { return f.id === id; })[0]; }
+  function findById(id) { return byId[id] || state.custom.filter(function (f) { return f.id === id; })[0]; }
   function round1(n) { return Math.round(n * 10) / 10; }
   function fmt(n) { var r = round1(n); return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)); }
-  function carbsFor(food, amount) { return food.per100 * amount / 100; }
+  function carbsFor(food, amount) { return food.perServing != null ? food.perServing * amount : food.per100 * amount / 100; }
+  function perLabel(food) { return food.perServing != null ? "per serving" : "per 100 " + food.unit; }
+  function perValue(food) { return food.perServing != null ? food.perServing : food.per100; }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
+  // Lower case without accents, so "cafe" finds "Caffè".
+  function fold(s) { return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
   function $(id) { return document.getElementById(id); }
 
   function itemFrom(food, amount, label, pIdx, qty) {
@@ -454,8 +453,8 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   var activeGroup = "All";
   function groups() {
     var g = ["All"];
-    if (state.custom.length) g.push("My foods");
-    foods.forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
+    state.custom.forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
+    foods.concat(cofid).forEach(function (f) { if (g.indexOf(f.group) < 0) g.push(f.group); });
     return g;
   }
   function renderChips() {
@@ -464,28 +463,49 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     }).join("");
   }
   function renderFoods() {
-    var q = $("q").value.trim().toLowerCase();
-    var list = allFoods().filter(function (f) {
+    var q = fold($("q").value.trim());
+    var terms = q.split(/\s+/).filter(Boolean);
+    // With no search and no group picked, show the common foods; otherwise search everything.
+    var pool = (activeGroup === "All" && !q) ? state.custom.concat(foods) : allFoods();
+    var list = pool.filter(function (f) {
       if (activeGroup !== "All" && f.group !== activeGroup) return false;
-      return !q || f.name.toLowerCase().indexOf(q) >= 0 || f.group.toLowerCase().indexOf(q) >= 0;
+      var hay = f.hay || fold(f.name);
+      return terms.every(function (t) { return hay.indexOf(t) >= 0; });
     });
+    if (terms.length) {
+      list.sort(function (a, b) {
+        var ra = (a.common || a.custom ? 0 : 2) + (a.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
+        var rb = (b.common || b.custom ? 0 : 2) + (b.name.toLowerCase().indexOf(terms[0]) === 0 ? 0 : 1);
+        return ra - rb || a.name.length - b.name.length;
+      });
+    }
+    var found = list.length;
+    // A chain's menu is short enough to show whole, under its own section headings.
+    var menu = !q && list.length > 0 && list[0].chain === activeGroup;
+    list = list.slice(0, menu ? found : MAX_ROWS);
     var html = "", last = null, showHeads = activeGroup === "All" && !q;
     list.forEach(function (f) {
       if (showHeads && f.group !== last) { html += '<li class="cat-head">' + esc(f.group) + "</li>"; last = f.group; }
+      if (menu && f.section !== last) { html += '<li class="cat-head">' + esc(f.section) + "</li>"; last = f.section; }
       var p = f.portions[0];
-      var sub = p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs" : "Enter the weight";
-      html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
-        '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(f.per100) + " g</b>per 100 " + f.unit + "</span></button></li>";
+      var sub = f.chain ? (menu ? "" : esc(f.section) + " · ") + esc(f.chain) + " menu, " + esc(f.sourceDate) : f.perServing != null ? esc(f.group) + " · per serving" : p ? esc(p[0]) + " (" + p[1] + " " + f.unit + ") = " + fmt(carbsFor(f, p[1])) + " g carbs"
+        : (f.code ? "CoFID " + esc(f.code) + (f.old ? " · older data" : "") + (f.est ? " · estimated" : "") + " · weigh it" : "Enter the weight");
+      html += '<li><button type="button" class="food" data-id="' + f.id + '"><span class="txt"><span class="name">' + esc(menu ? f.short : f.name) +
+        '</span><span class="sub">' + sub + '</span></span><span class="per100"><b>' + fmt(perValue(f)) + " g</b>" + perLabel(f) + "</span></button></li>";
     });
     $("foodList").innerHTML = html;
-    $("noResults").hidden = list.length > 0;
+    $("noResults").hidden = found > 0;
+    $("moreHint").hidden = !(showHeads || (found > MAX_ROWS && !menu));
+    $("moreHint").textContent = showHeads
+      ? "Showing common foods. Search or pick a group to see all " + (foods.length + cofid.length).toLocaleString("en-GB") + " foods."
+      : "Showing " + MAX_ROWS + " of " + found.toLocaleString("en-GB") + " matches. Add another word to narrow the list.";
   }
 
   // ---------- Meal ----------
   function total() { return state.meal.reduce(function (s, i) { return s + i.carbs; }, 0); }
   function renderMeal() {
     $("mealList").innerHTML = state.meal.map(function (i) {
-      var desc = i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
+      var desc = i.unit === "serving" ? esc(i.label || fmt(i.amount) + " servings") : i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
       return '<li class="item"><button type="button" class="food" data-item="' + i.id + '"' + (i.foodId ? "" : " disabled") + '><span class="txt"><span class="name">' +
         esc(i.name) + '</span><span class="sub">' + desc + '</span></span><span class="carbs">' + fmt(i.carbs) + ' g<small>carbs</small></span></button>' +
         '<button type="button" class="remove" data-remove="' + i.id + '" aria-label="Remove ' + esc(i.name) + '">×</button></li>';
@@ -493,7 +513,45 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     $("mealEmpty").hidden = state.meal.length > 0;
     $("exampleBanner").hidden = !state.example;
     $("mealCount").textContent = state.meal.length;
+    $("saveFavBtn").disabled = state.meal.length === 0;
     renderTotal();
+  }
+
+  // ---------- Favourites ----------
+  function mealTotal(items) { return items.reduce(function (s, i) { return s + i.carbs; }, 0); }
+  function altUnits(t) {
+    if (state.units === "cp") return fmt(t / 10) + " CP";
+    if (state.units === "ex") return fmt(t / 15) + " exch.";
+    return "";
+  }
+  function renderFavs() {
+    $("favList").innerHTML = state.favourites.map(function (f) {
+      var t = mealTotal(f.items);
+      var names = f.items.map(function (i) { return i.name; }).join(", ");
+      return '<li><button type="button" class="food" data-fav="' + f.id + '"><span class="txt"><span class="name">' + esc(f.name) +
+        '</span><span class="sub">' + esc(names) + '</span></span><span class="fav-total">' + fmt(t) + ' g<small>' + altUnits(t) + "</small></span></button></li>";
+    }).join("");
+    $("favEmpty").hidden = state.favourites.length > 0;
+    $("favCount").textContent = state.favourites.length;
+  }
+  var openFav = null, delArmed = null;
+  function openFavourite(fav) {
+    openFav = fav;
+    $("fTitle").textContent = fav.name;
+    $("fItems").innerHTML = fav.items.map(function (i) {
+      var desc = i.unit === "serving" ? esc(i.label || fmt(i.amount) + " servings") : i.amount != null ? (i.label ? esc(i.label) + " · " : "") + fmt(i.amount) + " " + i.unit : "From a label";
+      return "<li><span>" + esc(i.name) + '<span class="sub">' + desc + '</span></span><span class="carbs">' + fmt(i.carbs) + " g</span></li>";
+    }).join("");
+    var t = mealTotal(fav.items);
+    $("fTotal").textContent = fmt(t) + " g";
+    resetDelete();
+    $("favDlg").showModal();
+  }
+  function resetDelete() { clearTimeout(delArmed); delArmed = null; $("fDelete").textContent = "Delete this favourite"; }
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $("toast"); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.hidden = true; }, 2500);
   }
   function renderTotal() {
     var t = total(), el = $("totalG");
@@ -509,11 +567,11 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
 
   // ---------- Views ----------
   function show(view) {
-    var meal = view === "meal";
-    $("view-foods").hidden = meal; $("view-meal").hidden = !meal;
-    $("tab-foods").setAttribute("aria-selected", String(!meal));
-    $("tab-meal").setAttribute("aria-selected", String(meal));
-    $("trayBtn").textContent = meal ? "Add food" : "View meal";
+    ["foods", "meal", "favs"].forEach(function (v) {
+      $("view-" + v).hidden = v !== view;
+      $("tab-" + v).setAttribute("aria-selected", String(v === view));
+    });
+    $("trayBtn").textContent = view === "meal" ? "Add food" : "View meal";
     window.scrollTo(0, 0);
   }
 
@@ -523,13 +581,14 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     pFood = food; pItemId = item ? item.id : null;
     $("pGrams").value = "";
     $("pTitle").textContent = food.name;
-    $("pMeta").textContent = fmt(food.per100) + " g carbs per 100 " + food.unit + " · " + food.group;
-    $("pGramsLbl").textContent = food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
+    $("pMeta").textContent = fmt(perValue(food)) + " g carbs " + perLabel(food) + " · " + food.group + (food.code ? " · CoFID " + food.code : "") +
+      (food.chain ? " · from " + food.chain + "'s nutrition guide, " + food.sourceDate + ". Recipes change, so check in the restaurant if unsure." : "");
+    $("pGramsLbl").textContent = food.perServing != null ? "Servings" : food.unit === "ml" ? "Amount (ml)" : "Weight (g)";
     $("pPortions").innerHTML = food.portions.map(function (p, i) {
-      return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + " · " + p[1] + " " + food.unit + "</button>";
-    }).join("") + '<button type="button" class="chip" data-p="-1">Weigh it</button>';
+      return '<button type="button" class="chip" data-p="' + i + '">' + esc(p[0]) + (food.unit === "serving" ? "" : " · " + p[1] + " " + food.unit) + "</button>";
+    }).join("") + '<button type="button" class="chip" data-p="-1">' + (food.perServing != null ? "Other amount" : "Weigh it") + "</button>";
     $("pAdd").textContent = item ? "Update" : "Add to meal";
-    $("pDelete").hidden = !(food.group === "My foods" && !item);
+    $("pDelete").hidden = !(state.custom.indexOf(food) >= 0 && !item);
     if (item) {
       if (item.pIdx != null && food.portions[item.pIdx]) { selectPortion(item.pIdx, item.qty); }
       else { selectPortion(-1); $("pGrams").value = fmt(item.amount); }
@@ -561,7 +620,52 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   // ---------- Events ----------
   $("tab-foods").addEventListener("click", function () { show("foods"); });
   $("tab-meal").addEventListener("click", function () { show("meal"); });
+  $("tab-favs").addEventListener("click", function () { show("favs"); });
   $("trayBtn").addEventListener("click", function () { show($("view-meal").hidden ? "meal" : "foods"); });
+
+  $("saveFavBtn").addEventListener("click", function () {
+    if (!state.meal.length) return;
+    $("saveFavForm").reset(); $("sfErr").hidden = true;
+    var t = total();
+    $("sfMeta").textContent = state.meal.length + (state.meal.length === 1 ? " item" : " items") + " · " + fmt(t) + " g carbs";
+    $("saveFavDlg").showModal();
+  });
+  $("sfCancel").addEventListener("click", function () { $("saveFavDlg").close(); });
+  $("saveFavForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("sfName").value.trim();
+    if (!name) { $("sfErr").textContent = "Give the meal a name."; $("sfErr").hidden = false; return; }
+    var items = state.meal.map(function (i) { return Object.assign({}, i); });
+    var existing = state.favourites.filter(function (f) { return f.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (existing) { existing.name = name; existing.items = items; existing.savedAt = Date.now(); }
+    else state.favourites.unshift({ id: uid(), name: name, items: items, savedAt: Date.now() });
+    save(); renderFavs(); $("saveFavDlg").close();
+    toast(existing ? "Updated " + name : "Saved " + name + " to favourites");
+  });
+  $("favList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-fav]"); if (!b) return;
+    var fav = state.favourites.filter(function (f) { return f.id === b.dataset.fav; })[0];
+    if (fav) openFavourite(fav);
+  });
+  $("fClose").addEventListener("click", function () { $("favDlg").close(); });
+  $("favForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!openFav) return;
+    if (state.example) { state.meal = []; state.example = false; }
+    openFav.items.forEach(function (i) { state.meal.push(Object.assign({}, i, { id: uid() })); });
+    save(); renderMeal(); $("favDlg").close(); show("meal");
+    toast("Added " + openFav.name + " to your meal");
+  });
+  $("fDelete").addEventListener("click", function () {
+    if (!delArmed) {
+      $("fDelete").textContent = "Tap again to delete";
+      delArmed = setTimeout(resetDelete, 3000);
+      return;
+    }
+    resetDelete();
+    state.favourites = state.favourites.filter(function (f) { return f !== openFav; });
+    save(); renderFavs(); $("favDlg").close();
+  });
   $("q").addEventListener("input", renderFoods);
   $("cats").addEventListener("click", function (e) {
     var b = e.target.closest("[data-g]"); if (!b) return;
@@ -607,11 +711,25 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
   });
   $("pDelete").addEventListener("click", function () {
     state.custom = state.custom.filter(function (f) { return f.id !== pFood.id; });
-    if (!state.custom.length && activeGroup === "My foods") activeGroup = "All";
+    if (!state.custom.some(function (f) { return f.group === activeGroup; }) && (activeGroup === "My foods" || activeGroup === "Eating out")) activeGroup = "All";
     save(); renderChips(); renderFoods(); $("portionDlg").close();
   });
 
-  $("addCustomBtn").addEventListener("click", function () { $("customForm").reset(); $("cErr").hidden = true; $("customDlg").showModal(); });
+  var cBarcode = "";
+  function openCustom(pre) {
+    pre = pre || {};
+    $("customForm").reset(); $("cErr").hidden = true;
+    cBarcode = pre.barcode || "";
+    if (pre.name) $("cName").value = pre.name;
+    if (pre.carbs != null) $("cCarbs").value = pre.carbs;
+    if (pre.unit) $("cUnit").value = pre.unit;
+    if (pre.portionName) $("cPortion").value = pre.portionName;
+    if (pre.portionG) $("cPortionG").value = pre.portionG;
+    $("cSource").textContent = pre.source || "";
+    $("cSource").hidden = !pre.source;
+    $("customDlg").showModal();
+  }
+  $("addCustomBtn").addEventListener("click", function () { openCustom(); });
   $("cCancel").addEventListener("click", function () { $("customDlg").close(); });
   $("customForm").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -619,20 +737,34 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     if (!name || !(c >= 0 && c <= 100)) { $("cErr").textContent = "Enter a name and a carb figure between 0 and 100."; $("cErr").hidden = false; return; }
     var unit = $("cUnit").value;
     var portions = pg > 0 ? [[$("cPortion").value.trim() || "1 portion", pg]] : [];
-    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions };
+    var food = { id: "c" + uid(), name: name, group: "My foods", per100: c, unit: unit, portions: portions, barcode: cBarcode, custom: true };
+    if (cBarcode) state.custom = state.custom.filter(function (f) { return f.barcode !== cBarcode; });
     state.custom.unshift(food); save();
     activeGroup = "My foods"; $("q").value = ""; renderChips(); renderFoods();
     $("customDlg").close();
     openPortion(food);
   });
 
-  $("quickAddBtn").addEventListener("click", function () { $("quickForm").reset(); $("qErr").hidden = true; $("quickDlg").showModal(); });
+  function openQuick(focusPlace) { $("quickForm").reset(); $("qErr").hidden = true; $("quickDlg").showModal(); if (focusPlace) $("qPlace").focus(); }
+  $("quickAddBtn").addEventListener("click", function () { openQuick(false); });
+  $("eatOutBtn").addEventListener("click", function () { openQuick(true); });
   $("qCancel").addEventListener("click", function () { $("quickDlg").close(); });
   $("quickForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var c = parseFloat($("qCarbs").value);
     if (!(c >= 0)) { $("qErr").textContent = "Enter the carbohydrate in grams."; $("qErr").hidden = false; return; }
-    state.meal.push({ id: uid(), foodId: null, name: $("qName").value.trim() || "Label value", amount: null, unit: "g", label: "", carbs: c });
+    var place = $("qPlace").value.trim(), item = $("qName").value.trim();
+    var name = (place && item ? place + " · " + item : place || item || "Label value").slice(0, 60);
+    if ($("qRemember").checked) {
+      var food = { id: "c" + uid(), name: name, group: place ? "Eating out" : "My foods", perServing: c, per100: c, unit: "serving",
+        portions: [["1 serving", 1]], custom: true };
+      state.custom.unshift(food);
+      if (state.example) { state.meal = []; state.example = false; }
+      state.meal.push(itemFrom(food, 1, "1 serving", 0, 1));
+      renderChips(); renderFoods();
+    } else {
+      state.meal.push({ id: uid(), foodId: null, name: name, amount: null, unit: "g", label: "", carbs: c });
+    }
     clearExampleFlag(); save(); renderMeal(); $("quickDlg").close();
   });
 
@@ -653,10 +785,281 @@ dialog::backdrop { background: rgb(10 16 15 / 0.55); }
     $({ cp: "uCp", ex: "uEx", g: "uG" }[state.units]).checked = true;
     $("unitsDlg").showModal();
   });
-  $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); });
+  $("unitsForm").addEventListener("change", function (e) { state.units = e.target.value; save(); renderTotal(); renderFavs(); });
   $("unitsForm").addEventListener("submit", function (e) { e.preventDefault(); $("unitsDlg").close(); });
 
-  load(); renderChips(); renderFoods(); renderMeal();
+  // ---------- Branded products (Open Food Facts) ----------
+  var brandCache = {}, brandShown = [], brandCtl = null, shop = "";
+  // Own-brand ranges are found by adding the shop's name to the search words.
+  var SHOPS = [["", "Any brand"], ["tesco", "Tesco"], ["sainsbury's", "Sainsbury's"], ["asda", "Asda"], ["morrisons", "Morrisons"],
+    ["aldi", "Aldi"], ["lidl", "Lidl"], ["m&s", "M&S"], ["waitrose", "Waitrose"], ["co-op", "Co-op"], ["iceland", "Iceland"]];
+  function brandQuery() { var q = $("q").value.trim(); return shop ? shop + " " + q : q; }
+  function renderShops() {
+    $("shops").innerHTML = SHOPS.map(function (x) {
+      return '<button type="button" class="chip" aria-pressed="' + (x[0] === shop) + '" data-shop="' + esc(x[0]) + '">' + esc(x[1]) + "</button>";
+    }).join("");
+  }
+  $("shops").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-shop]"); if (!b) return;
+    shop = b.dataset.shop; renderShops(); renderBrandBox();
+  });
+  function offFood(p) {
+    var c100 = p && p.nutriments ? Number(p.nutriments.carbohydrates_100g) : NaN;
+    if (!p || !p.product_name || !isFinite(c100)) return null;
+    var brand = p.brands ? String(p.brands).split(",")[0].trim() : "";
+    return {
+      code: String(p.code || ""), name: [brand, p.product_name].filter(Boolean).join(" ").slice(0, 60), carbs: round1(c100),
+      servingName: p.serving_size ? String(p.serving_size).slice(0, 30) : "",
+      servingG: Number(p.serving_quantity) > 0 ? round1(Number(p.serving_quantity)) : ""
+    };
+  }
+  function offPrefill(f) {
+    return {
+      barcode: f.code, name: f.name, carbs: f.carbs, portionName: f.servingName, portionG: f.servingG,
+      source: "Found on Open Food Facts" + (f.code ? " (barcode " + f.code + ")" : "") + ". These figures are added by the public, so check them against the packet before you save."
+    };
+  }
+  function renderBrandBox() {
+    var q = brandQuery();
+    $("brandBox").hidden = $("q").value.trim().length < 3;
+    $("brandBtn").textContent = 'Search branded products for "' + q + '"';
+    if (brandCache[q.toLowerCase()]) showBrands(brandCache[q.toLowerCase()], q);
+    else { $("brandList").innerHTML = ""; $("brandStatus").textContent = ""; brandShown = []; }
+  }
+  function showBrands(list, q) {
+    brandShown = list;
+    $("brandStatus").textContent = list.length
+      ? list.length + " branded products from Open Food Facts. Tap one to check and save it."
+      : 'No branded products found for "' + q + '". Try the brand name plus the product, or scan the barcode.';
+    $("brandList").innerHTML = list.map(function (f, i) {
+      return '<li><button type="button" class="food" data-brand="' + i + '"><span class="txt"><span class="name">' + esc(f.name) +
+        '</span><span class="sub">' + (f.servingName ? esc(f.servingName) + " · " : "") + "Open Food Facts</span></span>" +
+        '<span class="per100"><b>' + fmt(f.carbs) + " g</b>per 100 g</span></button></li>";
+    }).join("");
+  }
+  function searchBrands() {
+    if ($("q").value.trim().length < 3) return;
+    var q = brandQuery();
+    if (brandCtl) brandCtl.abort();
+    var ctl = brandCtl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 15000);
+    $("brandBtn").disabled = true;
+    $("brandStatus").textContent = "Searching Open Food Facts…";
+    $("brandList").innerHTML = "";
+    var url = "https://world.openfoodfacts.org/cgi/search.pl?action=process&json=1&search_simple=1&page_size=40" +
+      "&tagtype_0=countries&tag_contains_0=contains&tag_0=united-kingdom" +
+      "&fields=code,product_name,brands,nutriments,serving_size,serving_quantity&search_terms=" + encodeURIComponent(q);
+    fetch(url, { signal: ctl.signal })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (d) {
+        var seen = {}, list = [];
+        (d.products || []).forEach(function (p) {
+          var f = offFood(p);
+          if (f && !seen[f.name.toLowerCase()]) { seen[f.name.toLowerCase()] = true; list.push(f); }
+        });
+        list = list.slice(0, 25);
+        brandCache[q.toLowerCase()] = list;
+        if (brandQuery() === q) showBrands(list, q);
+      })
+      .catch(function (e) {
+        if (ctl.signal.aborted && brandCtl !== ctl) return;
+        $("brandStatus").textContent = location.hostname.indexOf("github.io") >= 0 || location.protocol === "http:"
+          ? "Open Food Facts didn't answer. Wait a minute and try again, or scan the barcode."
+          : "Branded search can't reach Open Food Facts from here. It works in the app at katefrancis257.github.io/BolusBuddy. Here, scan or photograph the label instead.";
+      })
+      .then(function () { clearTimeout(t); $("brandBtn").disabled = false; });
+  }
+  $("brandBtn").addEventListener("click", searchBrands);
+  $("q").addEventListener("input", renderBrandBox);
+  $("q").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); searchBrands(); } });
+  $("brandList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-brand]"); if (!b) return;
+    var f = brandShown[Number(b.dataset.brand)]; if (!f) return;
+    var mine = f.code && state.custom.filter(function (c) { return c.barcode === f.code; })[0];
+    if (mine) openPortion(mine); else openCustom(offPrefill(f));
+  });
+
+  // ---------- Scanning ----------
+  var ZXING_URL = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+  var zxingReady = null, stream = null, liveTimer = null, sampleFn = null, scanBusy = false;
+  function loadZxing() {
+    if (window.ZXing) return Promise.resolve(window.ZXing);
+    if (!zxingReady) {
+      zxingReady = new Promise(function (resolve, reject) {
+        var sc = document.createElement("script");
+        sc.src = ZXING_URL; sc.async = true;
+        sc.onload = function () { window.ZXing ? resolve(window.ZXing) : reject(new Error("no ZXing")); };
+        sc.onerror = function () { zxingReady = null; reject(new Error("load failed")); };
+        document.head.appendChild(sc);
+      });
+    }
+    return zxingReady;
+  }
+  function scanStatus(msg, manual) { $("scanStatus").textContent = msg; $("scanManual").hidden = !manual; }
+
+  // Decode a barcode from a canvas: the browser's own detector where it has one, otherwise ZXing.
+  function decodeCanvas(canvas) {
+    var native = "BarcodeDetector" in window
+      ? new window.BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }).detect(canvas)
+          .then(function (r) { return r.length ? r[0].rawValue : null; }).catch(function () { return null; })
+      : Promise.resolve(null);
+    return native.then(function (code) {
+      if (code) return code;
+      return loadZxing().then(function (Z) {
+        var hints = new Map();
+        hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E]);
+        hints.set(Z.DecodeHintType.TRY_HARDER, true);
+        var bitmap = new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(canvas)));
+        try { return new Z.MultiFormatReader().decode(bitmap, hints).getText(); } catch (e) { return null; }
+      });
+    });
+  }
+  function fileToCanvas(file, maxSide) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); resolve(c);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("bad image")); };
+      img.src = url;
+    });
+  }
+
+  function startLive() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false }).then(function (s) {
+      if (!$("scanDlg").open) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
+      stream = s;
+      var v = $("scanVideo"); v.srcObject = s; v.play().catch(function () {});
+      $("scanLive").hidden = false;
+      var c = document.createElement("canvas");
+      liveTimer = setInterval(function () {
+        if (scanBusy || !v.videoWidth) return;
+        scanBusy = true;
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext("2d").drawImage(v, 0, 0);
+        decodeCanvas(c).then(function (code) { scanBusy = false; if (code && stream) { stopLive(); lookup(code); } })
+          .catch(function () { scanBusy = false; });
+      }, 400);
+    }).catch(function () { /* No live camera here: the photo button does the job. */ });
+  }
+  function stopLive() {
+    clearInterval(liveTimer); liveTimer = null;
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    stream = null; $("scanLive").hidden = true;
+  }
+
+  function lookup(code) {
+    code = String(code).replace(/\D/g, "");
+    if (code.length < 8) { scanStatus("Barcodes are 8 to 14 digits. Check the number and try again.", false); return; }
+    $("barcodeIn").value = code;
+    var mine = state.custom.filter(function (f) { return f.barcode === code; })[0];
+    if (mine) { closeScan(); openPortion(mine); return; }
+    scanStatus("Looking up " + code + "…", false);
+    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 10000);
+    fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,nutriments,serving_size,serving_quantity", { signal: ctl.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        clearTimeout(t);
+        var p = d && d.status === 1 ? d.product : null;
+        var c100 = p && p.nutriments ? Number(p.nutriments.carbohydrates_100g) : NaN;
+        if (!p || !isFinite(c100)) {
+          scanStatus("Barcode " + code + " isn't in the Open Food Facts database with a carb figure." + (sampleFn ? " Photograph the nutrition label, or add it by hand." : " Add it by hand from the label."), true);
+          return;
+        }
+        var name = [p.brands ? String(p.brands).split(",")[0].trim() : "", p.product_name || ""].filter(Boolean).join(" ") || "Scanned product";
+        closeScan();
+        openCustom({
+          barcode: code, name: name.slice(0, 60), carbs: round1(c100),
+          portionName: p.serving_size ? String(p.serving_size).slice(0, 30) : "",
+          portionG: Number(p.serving_quantity) > 0 ? round1(Number(p.serving_quantity)) : "",
+          source: "Found on Open Food Facts for barcode " + code + ". These figures are added by the public, so check them against the packet before you save."
+        });
+      })
+      .catch(function () {
+        clearTimeout(t);
+        scanStatus("Barcode " + code + " read, but the product database can't be reached from here." + (sampleFn ? " Photograph the nutrition label instead, or add it by hand." : " Add it by hand from the label."), true);
+      });
+  }
+
+  function readLabel(file) {
+    if (!sampleFn) return;
+    scanStatus("Reading the label. This can take up to a minute…", false);
+    var prompt = "This photo shows a food or drink packet, usually its nutrition information panel. " +
+      "Read the carbohydrate figure exactly as printed. Use the per 100 g or per 100 ml column. " +
+      "If only a per-serving figure is printed, give it as carbs_per_serving and set carbs_per_100 to null. " +
+      'Reply with only JSON: {"product_name": string or null, "carbs_per_100": number or null, "unit": "g" or "ml", ' +
+      '"serving_name": string or null, "serving_size": number or null, "carbs_per_serving": number or null, "readable": true or false}. ' +
+      "Use null for anything you cannot read clearly. Never estimate or guess a number.";
+    sampleFn.json(prompt, { images: [file], cache: false }).then(function (r) {
+      var c = r && typeof r.carbs_per_100 === "number" ? r.carbs_per_100 : null;
+      var cs = r && typeof r.carbs_per_serving === "number" ? r.carbs_per_serving : null;
+      var size = r && typeof r.serving_size === "number" ? r.serving_size : null;
+      if (c == null && cs != null && size) c = round1(cs * 100 / size);
+      if (c == null) { scanStatus("I couldn't read a carbohydrate figure from that photo. Try again with the panel flat, close up and in good light.", true); return; }
+      var code = $("barcodeIn").value.replace(/\D/g, "");
+      closeScan();
+      openCustom({
+        barcode: code.length >= 8 ? code : "", name: r.product_name ? String(r.product_name).slice(0, 60) : "",
+        carbs: c, unit: r.unit === "ml" ? "ml" : "g",
+        portionName: r.serving_name ? String(r.serving_name).slice(0, 30) : "", portionG: size || "",
+        source: "Read from your photo by Claude. Check every figure against the label before you save."
+      });
+    }).catch(function (e) {
+      var msg = {
+        not_granted: "Label reading needs your permission to use Claude. Add the figures by hand instead.",
+        rate_limited: "Label reading is busy right now. Try again shortly, or add it by hand.",
+        image_rejected: "That photo couldn't be used. Try a JPEG or PNG photo.",
+        invalid_json: "I couldn't read that label clearly. Try another photo."
+      }[e && e.code] || "Label reading didn't work this time. Try again, or add it by hand.";
+      if (e && (e.code === "not_granted" || e.code === "sampling_disabled")) { sampleFn = null; $("labelPhotoWrap").hidden = true; }
+      scanStatus(msg, true);
+    });
+  }
+
+  function openScan() {
+    $("barcodeIn").value = ""; scanStatus("", false);
+    $("scanDlg").showModal();
+    startLive();
+  }
+  function closeScan() { stopLive(); if ($("scanDlg").open) $("scanDlg").close(); }
+  $("scanBtn").addEventListener("click", openScan);
+  $("scanClose").addEventListener("click", closeScan);
+  $("scanDlg").addEventListener("close", stopLive);
+  $("barcodeGo").addEventListener("click", function () { lookup($("barcodeIn").value); });
+  $("barcodeIn").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); lookup($("barcodeIn").value); } });
+  $("scanManual").addEventListener("click", function () {
+    var code = $("barcodeIn").value.replace(/\D/g, "");
+    closeScan(); openCustom({ barcode: code.length >= 8 ? code : "" });
+  });
+  $("barcodePhoto").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    scanStatus("Reading the barcode…", false);
+    fileToCanvas(f, 1600).then(decodeCanvas).then(function (code) {
+      if (code) lookup(code);
+      else scanStatus("No barcode found in that photo. Fill the frame with the barcode, keep it flat, and try again.", false);
+    }).catch(function () { scanStatus("That photo couldn't be opened. Try again.", false); });
+  });
+  $("labelPhoto").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = "";
+    if (f) readLabel(f);
+  });
+  // Label reading uses Claude, which only exists when the app runs inside Claude.
+  if (window.claude && window.claude.use) {
+    window.claude.use("sample").then(function (s) {
+      if (!s) return;
+      return s.limits().then(function (lim) {
+        if (lim && lim.images) { sampleFn = s; $("labelPhotoWrap").hidden = false; }
+      });
+    }).catch(function () {});
+  }
+
+  renderShops();
+  load(); renderChips(); renderFoods(); renderMeal(); renderFavs();
   if (state.example) show("meal");
 })();
 </script>

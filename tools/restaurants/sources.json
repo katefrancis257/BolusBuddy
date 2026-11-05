@@ -1,0 +1,83 @@
+[
+ {
+  "file": "wagamama.tsv",
+  "chain": "Wagamama",
+  "source": "wagamama allergen information and dietary guide, October main menu",
+  "url": "https://menus.tenkites.com/wagamamauk/wagamamainternalallergymatrix",
+  "date": "7 October 2026",
+  "aliases": [
+   "wagamamas"
+  ]
+ },
+ {
+  "file": "pizzaexpress.tsv",
+  "chain": "PizzaExpress",
+  "source": "PizzaExpress nutritional information, England, Wales & Scotland",
+  "url": "https://www.pizzaexpress.com/-/media/Files/PDFs/Allergens-and-Nutritionals/PEX-Nutritional-Menu---July-26.ashx",
+  "date": "July 2026",
+  "aliases": [
+   "pizza express"
+  ]
+ },
+ {
+  "file": "nero.tsv",
+  "chain": "Caffè Nero",
+  "source": "Caffè Nero UK menu pages (per-product nutrition)",
+  "url": "https://www.caffenero.com/uk/menu",
+  "date": "read 14 October 2026",
+  "aliases": [
+   "cafe nero",
+   "caffe nero",
+   "nero"
+  ]
+ },
+ {
+  "file": "costa.tsv",
+  "chain": "Costa",
+  "source": "Costa Coffee UK menu item pages (per-serving nutrition, standard size and milk as shown)",
+  "url": "https://www.costa.co.uk/menu",
+  "date": "read 14 October 2026",
+  "aliases": [
+   "costa coffee"
+  ]
+ },
+ {
+  "file": "kfc.tsv",
+  "chain": "KFC",
+  "source": "KFC Allergen & Nutrition Information",
+  "url": "https://brand-uk.assets.kfc.co.uk/nutrition-allergens.pdf",
+  "date": "September 2026",
+  "aliases": [
+   "kentucky"
+  ]
+ },
+ {
+  "file": "greggs.tsv",
+  "chain": "Greggs",
+  "source": "Greggs Nutritional Information (guide only)",
+  "url": "https://a.storyblok.com/f/94904/x/7dd8489dab/nutritional-information.pdf",
+  "date": "September 2026"
+ },
+ {
+  "file": "fiveguys.tsv",
+  "chain": "Five Guys",
+  "source": "Five Guys UK Nutrition & Allergen Guide",
+  "url": "https://www.fiveguys.co.uk/wp-content/uploads/sites/30/2026/10/FGUK_FOH_allergen_ingredient_nutrition_MM_shake_DIGITAL_20261013.pdf",
+  "date": "October 2026",
+  "aliases": [
+   "fiveguys",
+   "5 guys"
+  ]
+ },
+ {
+  "file": "dominos.tsv",
+  "chain": "Domino's",
+  "source": "Domino's Nutrition Information Guides (Pizzas; Sides & Desserts)",
+  "url": "https://dominos.a.bigcontent.io/v1/static/nutrition_sides-and-desserts",
+  "date": "7 September 2026",
+  "aliases": [
+   "dominos",
+   "domino"
+  ]
+ }
+]
